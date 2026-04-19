@@ -5,6 +5,7 @@
       <div class="container mx-auto px-4">
         <nav class="flex justify-between items-center py-4">
           <div class="text-2xl font-bold text-blue-600">
+            <Logo />
             <NuxtLink to="/">个人博客</NuxtLink>
           </div>
           <div class="hidden md:flex space-x-8">
