@@ -5,8 +5,7 @@
       <div class="container mx-auto px-4">
         <nav class="flex justify-between items-center py-4">
           <div class="text-2xl font-bold text-blue-600">
-            <Logo />
-            <NuxtLink to="/">个人博客</NuxtLink>
+            <customLogo title="TY's Blog" fontSize="23px" :isShowLogo="true" />
           </div>
           <div class="hidden md:flex space-x-8">
             <NuxtLink to="/" class="font-medium hover:text-blue-600 transition">首页</NuxtLink>
