@@ -1,61 +1,109 @@
-<template>
-  <div class="home">
-    <!-- 顶部导航栏 -->
-    <header class="sticky top-0 z-50 bg-white shadow-md">
-      <div class="container mx-auto px-4">
-        <nav class="flex justify-between items-center py-4">
-          <div class="text-2xl font-bold text-blue-600">
-            <customLogo title="TY's Blog" fontSize="23px" :isShowLogo="true" />
-          </div>
-          <div class="hidden md:flex space-x-8">
-            <NuxtLink to="/" class="font-medium hover:text-blue-600 transition">首页</NuxtLink>
-            <NuxtLink to="/about" class="font-medium hover:text-blue-600 transition">关于</NuxtLink>
-            <NuxtLink to="/blog" class="font-medium hover:text-blue-600 transition">博客</NuxtLink>
-          </div>
-        </nav>
-      </div>
-    </header>
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
 
-    <section class="hero bg-blue-50 py-16">
-      <div class="container mx-auto px-4 text-center">
-        <h1 class="text-4xl font-bold mb-4">欢迎来到我的个人博客</h1>
-        <p class="text-xl text-gray-600 mb-8">分享技术、生活和思考</p>
-        <NuxtLink to="/blog" class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">
-          浏览博客
-        </NuxtLink>
+const siteStore = useSiteStore();
+const { brand, home, stack } = storeToRefs(siteStore);
+
+useSeoMeta({
+  title: () => home.value.seoTitle,
+  description: () => home.value.intro,
+});
+</script>
+
+<template>
+  <div class="space-y-8">
+    <section class="film-frame overflow-hidden">
+      <div class="grid gap-8 lg:grid-cols-[1.35fr_0.85fr] lg:items-center">
+        <div class="space-y-6">
+          <p class="film-label">{{ home.kicker }}</p>
+
+          <div class="space-y-4">
+            <p class="text-xs uppercase tracking-[0.45em] text-[var(--film-gold-soft)] md:text-sm">
+              {{ brand.owner }} / {{ brand.alias }}
+            </p>
+            <h1 class="hero-title">{{ home.title }}</h1>
+            <p class="max-w-3xl text-xl leading-8 text-[var(--film-paper-soft)] md:text-2xl">
+              {{ home.subtitle }}
+            </p>
+            <p class="max-w-2xl text-base leading-8 text-[var(--film-muted-light)] md:text-lg">
+              {{ home.intro }}
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-3">
+            <span v-for="badge in home.badges" :key="badge" class="contact-chip">
+              {{ badge }}
+            </span>
+          </div>
+
+          <div class="flex flex-wrap gap-4 pt-2">
+            <NuxtLink
+              v-for="action in home.ctas"
+              :key="action.to"
+              :to="action.to"
+              class="ticket-button"
+              :class="action.variant === 'primary' ? 'ticket-button-primary' : 'ticket-button-secondary'"
+            >
+              {{ action.label }}
+            </NuxtLink>
+          </div>
+        </div>
+
+        <aside class="poster-card">
+          <p class="text-xs uppercase tracking-[0.35em] text-[var(--film-gold-soft)]">
+            {{ home.poster.label }}
+          </p>
+          <div class="mt-5 space-y-4">
+            <div>
+              <p class="text-sm uppercase tracking-[0.3em] text-[var(--film-muted-light)]">
+                {{ home.poster.titleLabel }}
+              </p>
+              <h2 class="mt-2 text-3xl leading-tight text-[var(--film-paper)]">
+                {{ home.poster.title }}
+              </h2>
+            </div>
+
+            <p class="text-sm leading-7 text-[var(--film-paper-soft)]">
+              {{ home.poster.body }}
+            </p>
+
+            <div class="story-divider" />
+
+            <ul class="space-y-3 text-sm leading-7 text-[var(--film-muted-light)]">
+              <li v-for="note in home.notes" :key="note">{{ note }}</li>
+            </ul>
+          </div>
+        </aside>
       </div>
     </section>
 
-    <section class="features py-12">
-      <div class="container mx-auto px-4">
-        <h2 class="text-2xl font-bold mb-8 text-center">博客特色</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-xl font-semibold mb-3">技术分享</h3>
-            <p>分享前端开发、后端技术和其他编程相关的知识</p>
+    <section class="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+      <gameLifeDrawer />
+
+      <article class="paper-panel">
+        <div class="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p class="film-label">{{ home.techReel.label }}</p>
+            <h2 class="mt-4 text-3xl text-[var(--film-ink)]">{{ home.techReel.title }}</h2>
+            <p class="mt-3 max-w-2xl text-sm leading-7 text-[var(--film-muted)]">
+              {{ home.techReel.body }}
+            </p>
           </div>
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-xl font-semibold mb-3">生活记录</h3>
-            <p>记录生活中的点滴，分享个人成长和感悟</p>
-          </div>
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-xl font-semibold mb-3">思考总结</h3>
-            <p>对技术和生活的思考，总结经验和教训</p>
-          </div>
+          <NuxtLink to="/about" class="ticket-button ticket-button-secondary">
+            {{ home.techReel.actionLabel }}
+          </NuxtLink>
         </div>
-      </div>
+
+        <div class="mt-6 flex flex-wrap gap-3">
+          <span
+            v-for="item in stack"
+            :key="item"
+            class="rounded-full border border-[rgba(92,58,32,0.16)] bg-[rgba(255,248,235,0.88)] px-4 py-2 text-sm text-[var(--film-ink)]"
+          >
+            {{ item }}
+          </span>
+        </div>
+      </article>
     </section>
   </div>
 </template>
-
-<style scoped>
-/* 导航栏样式 */
-header {
-  transition: all 0.3s ease;
-}
-
-header.scrolled {
-  background-color: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-</style>

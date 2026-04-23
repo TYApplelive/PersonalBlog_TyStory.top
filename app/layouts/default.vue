@@ -1,28 +1,51 @@
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
 
+const route = useRoute();
+const siteStore = useSiteStore();
+const { nav } = storeToRefs(siteStore);
+
+// 统一处理导航高亮，避免页面里重复写路由匹配逻辑。
+const isActive = (to: string) => {
+  if (to === "/") {
+    return route.path === "/";
+  }
+
+  return route.path === to || route.path.startsWith(`${to}/`);
+};
+
+const navLinkClass = (to: string) => {
+  return isActive(to) ? "nav-link nav-link-active" : "nav-link";
+};
 </script>
 
-<!--
-默认布局文件
-用途：定义整个应用的基本布局结构，包含头部导航、主内容区域和页脚
-结构：
-- 头部导航栏：显示网站标题和导航链接
-- 主内容区域：通过 slot 插槽显示页面内容
-- 页脚：显示版权信息
--->
 <template>
-    <!-- 根容器：使用 flex 布局实现垂直方向的布局结构 -->
-    <div class="min-h-screen">
-        <!-- 主内容区域：使用 flex-1 占据剩余空间，包含页面内容 -->
-        <main class="flex-1 container mx-auto px-4 py-8">
-            <!-- 插槽：用于插入页面特定内容 -->
-            <slot />
-        </main>
+  <div class="film-shell">
+    <div class="page-wrap">
+      <header class="sticky top-4 z-50">
+        <div class="film-frame px-5 py-4 md:px-7">
+          <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <customLogo />
 
-        <!-- 页脚：包含多列布局、链接和版权信息 -->
-        <footer class="bg-gray-900 text-gray-300">
-            <!-- 顶部区域：包含多个列 -->
-            <customFooter />
-        </footer>
+            <nav class="flex flex-wrap items-center gap-2 md:justify-end">
+              <NuxtLink
+                v-for="item in nav"
+                :key="item.to"
+                :to="item.to"
+                :class="navLinkClass(item.to)"
+              >
+                {{ item.label }}
+              </NuxtLink>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      <main class="pt-8">
+        <slot />
+      </main>
+
+      <customFooter />
     </div>
+  </div>
 </template>
