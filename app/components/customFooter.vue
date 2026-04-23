@@ -9,21 +9,21 @@ const year = new Date().getFullYear();
       <div class="space-y-3">
         <p class="film-label">{{ siteStore.footer.label }}</p>
         <div>
-          <h2 class="text-2xl text-[var(--film-paper)]">{{ siteStore.brand.title }}</h2>
-          <p class="max-w-2xl text-sm leading-7 text-[var(--film-muted-light)]">
+          <h2 class="text-2xl text-(--film-paper)">{{ siteStore.brand.title }}</h2>
+          <p class="max-w-2xl text-sm leading-7 text-(--film-muted-light)">
             {{ siteStore.footer.description }}
           </p>
         </div>
       </div>
 
-      <div class="min-w-[15rem]">
+      <div class="min-w-60">
         <contactIcons :title="siteStore.footer.contactLabel" />
       </div>
     </div>
 
     <div class="story-divider my-5" />
 
-    <div class="flex flex-col gap-3 text-xs uppercase tracking-[0.28em] text-[var(--film-muted)] md:flex-row md:items-center md:justify-between">
+    <div class="flex flex-col gap-3 text-xs uppercase tracking-[0.28em] text-(--film-muted) md:flex-row md:items-center md:justify-between">
       <p>{{ year }} {{ siteStore.brand.title }}</p>
       <p>{{ siteStore.footer.ending }} {{ siteStore.brand.owner }}</p>
     </div>

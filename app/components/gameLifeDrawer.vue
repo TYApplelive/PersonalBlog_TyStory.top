@@ -18,8 +18,8 @@ const openEnvelope = (gameId: string) => {
     <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
         <p class="film-label">{{ gameLife.label }}</p>
-        <h2 class="mt-4 text-3xl text-[var(--film-ink)]">{{ gameLife.title }}</h2>
-        <p class="mt-3 max-w-2xl text-sm leading-7 text-[var(--film-muted)]">
+        <h2 class="mt-4 text-3xl text-(--film-ink)">{{ gameLife.title }}</h2>
+        <p class="mt-3 max-w-2xl text-sm leading-7 text-(--film-muted)">
           {{ gameLife.subtitle }}
         </p>
       </div>
