@@ -33,6 +33,15 @@ export interface TechCard {
   status: string;
 }
 
+export interface InspirationItem {
+  id: string;
+  type: "movie" | "music" | "book" | "quote";
+  title: string;
+  subtitle?: string;
+  description: string;
+  year?: string;
+}
+
 export interface GameEntry {
   id: string;
   title: string;
@@ -173,8 +182,39 @@ export const useSiteStore = defineStore("site", {
         body:
           "这也是这一页想表达的重点。这里不需要把自己写成一张履历表，只需要把这个站点存在的原因讲清楚。它既是技术练习，也是一次重新搭建个人表达空间的过程。",
       },
-      stackLabel: "Stack",
-      contactLabel: "Contact",
+      inspirationLabel: "Inspiration",
+      inspirations: <InspirationItem[]>[
+        {
+          id: "insp-1",
+          type: "movie",
+          title: "一一",
+          subtitle: "杨德昌",
+          year: "2000",
+          description: "对日常的细腻观察，每一个镜头都像是生活本身的切片。",
+        },
+        {
+          id: "insp-2",
+          type: "music",
+          title: "Midnight City",
+          subtitle: "M83",
+          year: "2011",
+          description: "复古合成器浪潮，怀旧又充满向前冲的力量感。",
+        },
+        {
+          id: "insp-3",
+          type: "book",
+          title: "禅与摩托车维修艺术",
+          subtitle: "罗伯特·M·波西格",
+          year: "1974",
+          description: "在技术与诗意之间寻找平衡的永恒追问。",
+        },
+        {
+          id: "insp-4",
+          type: "quote",
+          title: "把一件事做好",
+          description: "慢慢来，比较快。找到真正在意的事，然后慢慢磨。",
+        },
+      ],
     },
     contacts: {
       github: {
@@ -362,7 +402,7 @@ export const useSiteStore = defineStore("site", {
         { id: "subtitle", label: "Subtitle", value: "Mono Theatre" },
       ] as BlogOrnament[],
     },
-    blogPosts: <BlogPost[]>[
+    blogPosts: [
       {
         id: 1,
         title: "Nuxt 4 入门指南",
@@ -373,6 +413,7 @@ export const useSiteStore = defineStore("site", {
         tags: ["Nuxt", "Vue", "SSR"],
         content: `
           <p>Nuxt 4 建立在 Vue 3 之上，提供了路由、服务端渲染和自动导入等能力，让我们能更轻松地搭建现代网站。</p>
+          <h3>核心关注点</h3>
           <p>如果你刚开始接触 Nuxt，可以先关注这几个核心点：</p>
           <ul>
             <li>如何初始化一个 Nuxt 4 项目</li>
@@ -394,6 +435,7 @@ export const useSiteStore = defineStore("site", {
         tags: ["Vue", "Composition API", "Composables"],
         content: `
           <p>Vue 3 的 Composition API 最大的价值，不是把代码写得更短，而是能把同一类逻辑更自然地组织在一起。</p>
+          <h3>实用的组织思路</h3>
           <p>几个比较实用的思路包括：</p>
           <ul>
             <li>按功能组织状态和副作用，而不是只按选项分类</li>
@@ -415,6 +457,7 @@ export const useSiteStore = defineStore("site", {
         tags: ["Frontend", "Performance", "Web"],
         content: `
           <p>前端性能优化通常不需要一次做得非常复杂，先把几个基础点做好，效果就会比较明显。</p>
+          <h3>优化清单</h3>
           <ul>
             <li>减少不必要的请求和体积过大的资源</li>
             <li>合理利用缓存与静态资源分发</li>
@@ -426,7 +469,103 @@ export const useSiteStore = defineStore("site", {
           <p>先解决真正影响体验的瓶颈，比一开始追求极限分数更有意义。</p>
         `,
       },
-    ],
+      {
+        id: 4,
+        title: "TypeScript 在项目中的渐进式引入",
+        date: "2026-03-28",
+        excerpt:
+          "不需要一次性把整个项目重写，TypeScript 完全可以一步步引入，慢慢发挥它的价值。",
+        readTime: "7 min",
+        tags: ["TypeScript", "JavaScript", "Best Practices"],
+        content: `
+          <p>很多团队担心引入 TypeScript 会增加开发成本，但实际上它完全可以渐进式地融入项目。</p>
+          <h3>渐进式路线</h3>
+          <p>一个比较稳妥的引入路线是这样的：</p>
+          <ul>
+            <li>先给工具函数和核心模块加上类型</li>
+            <li>逐步为组件 Props 和状态添加类型定义</li>
+            <li>利用类型推断减少显式类型注解的负担</li>
+            <li>最后再考虑更严格的编译选项</li>
+          </ul>
+          <blockquote>类型系统是辅助工具，不是束缚，找到适合团队的平衡点最重要。</blockquote>
+          <p>当类型覆盖逐渐完善后，重构和协作的信心会明显增强。</p>
+        `,
+      },
+      {
+        id: 5,
+        title: "CSS 变量与主题系统的设计",
+        date: "2026-03-20",
+        excerpt:
+          "CSS 变量让主题切换和设计系统变得更简单，不需要复杂的构建工具就能实现很多效果。",
+        readTime: "5 min",
+        tags: ["CSS", "Design System", "Theming"],
+        content: `
+          <p>原生 CSS 变量是一个非常强大的特性，配合 :root 和 class 切换就能实现完整的主题系统。</p>
+          <h3>设计思路</h3>
+          <ul>
+            <li>先定义语义化的基础变量（颜色、间距、字体）</li>
+            <li>组件层面再引用这些变量，而不是硬编码值</li>
+            <li>利用 CSS 优先级实现主题覆盖</li>
+            <li>配合 prefers-color-scheme 支持系统深色模式</li>
+          </ul>
+          <blockquote>好的设计系统不是约束创意，而是提供稳定的基础让创意更好地落地。</blockquote>
+          <p>这种做法的好处是没有运行时负担，切换非常流畅。</p>
+        `,
+      },
+      {
+        id: 6,
+        title: "Git 工作流与团队协作实践",
+        date: "2026-03-12",
+        excerpt:
+          "好的 Git 工作流能让团队协作更顺畅，减少合并冲突和版本混乱的困扰。",
+        readTime: "6 min",
+        tags: ["Git", "Workflow", "Team"],
+        content: `
+          <p>Git 不只是版本控制工具，它也是团队协作的一部分，选择适合的工作流很重要。</p>
+          <h3>常见工作流</h3>
+          <p>几种比较成熟的工作流模式：</p>
+          <ul>
+            <li>Git Flow：适合有明确发布周期的项目</li>
+            <li>GitHub Flow：适合持续部署的轻量级团队</li>
+            <li>Trunk Based：强调频繁集成，适合自动化程度高的团队</li>
+          </ul>
+          <h3>实践建议</h3>
+          <ul>
+            <li>写清晰的 commit message</li>
+            <li>保持 commit 粒度小而聚焦</li>
+            <li>代码审查时关注逻辑而不是风格</li>
+          </ul>
+          <blockquote>工具是死的，人是活的，工作流要为团队服务，而不是反过来。</blockquote>
+        `,
+      },
+      {
+        id: 7,
+        title: "如何写出可维护的代码",
+        date: "2026-03-05",
+        excerpt:
+          "可维护性不是靠感觉，而是有具体的原则和实践可以遵循的。",
+        readTime: "8 min",
+        tags: ["Clean Code", "Best Practices", "Refactoring"],
+        content: `
+          <p>写代码一时爽，维护代码火葬场，这是很多开发者的共同感受。但可维护性是可以主动设计的。</p>
+          <h3>核心原则</h3>
+          <ul>
+            <li>可读性优先，其次才是性能优化（除非确有必要）</li>
+            <li>合理的命名胜过千行注释</li>
+            <li>函数和组件保持单一职责</li>
+            <li>依赖注入让代码更易测试和替换</li>
+          </ul>
+          <h3>实用技巧</h3>
+          <ul>
+            <li>写代码前先想「三个月后我还能看懂这段代码吗？」</li>
+            <li>积极面对坏味道，及时重构</li>
+            <li>用测试作为文档和安全网</li>
+          </ul>
+          <blockquote>代码是写给人看的，顺便给机器执行。</blockquote>
+          <p>今天多花一点时间把代码写整洁，未来会节省更多时间。</p>
+        `,
+      },
+    ] as BlogPost[],
     ui: {
       hoveredContact: null as ContactKey | null,
     },
@@ -450,6 +589,12 @@ export const useSiteStore = defineStore("site", {
     },
     /// 博客文章列表
     getBlogPosts: (state) => state.blogPosts,
+    /// 按 order 排序的游戏列表（用于流动式布局）
+    getGameOrderedList: (state) => {
+      return [...state.gameLife.games].sort((a, b) => a.order - b.order);
+    },
+    /// 获取技术卡片列表
+    getTechReelCards: (state) => state.home.techReel.cards,
   },
   actions: {
     /// 设置当前悬浮的联系方式
@@ -471,6 +616,12 @@ export const useSiteStore = defineStore("site", {
     /// 按 ID 获取博客文章
     getBlogPostById(postId: number) {
       return this.blogPosts.find((post) => post.id === postId) ?? null;
+    },
+
+    /// 加载博客文章（占位，当前数据已在 state 中）
+    loadBlogPosts() {
+      // 当前数据已在 state 中预定义，此函数保留以兼容现有调用
+      // 未来可以扩展为从 API 加载数据
     },
   },
 });

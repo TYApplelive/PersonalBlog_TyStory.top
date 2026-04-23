@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 
 const siteStore = useSiteStore();
-const { gameLife, getActiveGame, isGameDrawerOpen } = storeToRefs(siteStore);
+const { gameLife, getActiveGame, isGameDrawerOpen, getGameOrderedList } = storeToRefs(siteStore);
 
 const toggleDrawer = () => {
   siteStore.toggleGameDrawer();
@@ -31,25 +31,24 @@ const openEnvelope = (gameId: string) => {
 
     <transition name="drawer-rise">
       <div v-if="isGameDrawerOpen" class="game-drawer mt-6">
+        <!-- 左侧：游戏信封舞台（流动式网格布局） -->
         <div class="game-drawer-envelope-stage">
           <p class="game-drawer-hint">{{ gameLife.drawerHint }}</p>
 
-          <button
-            v-for="game in gameLife.games"
-            :key="game.id"
-            type="button"
-            class="game-envelope"
-            :class="{ 'game-envelope-active': getActiveGame?.id === game.id }"
-            :style="{ rotate: game.angle, top: game.top, left: game.left }"
-            @click="openEnvelope(game.id)"
-          >
-            <span class="game-envelope-title">{{ game.title }}</span>
-            <span class="game-envelope-meta">{{ game.genre }}</span>
-          </button>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            <button v-for="game in getGameOrderedList" :key="game.id" type="button" class="game-envelope"
+              :class="{ 'game-envelope-active': getActiveGame?.id === game.id, [game.sizeVariant as string]: game.sizeVariant }" :style="{ rotate: game.angle }"
+              @click="openEnvelope(game.id)">
+              <span class="game-envelope-title">{{ game.title }}</span>
+              <span class="game-envelope-meta">{{ game.genre }}</span>
+            </button>
+          </div>
         </div>
 
+        <!-- 右侧：游戏详情卡 -->
         <div v-if="getActiveGame" class="game-letter">
-          <p class="game-letter-meta">{{ getActiveGame.years }} / {{ getActiveGame.genre }} / {{ getActiveGame.hours }}</p>
+          <p class="game-letter-meta">{{ getActiveGame.years }} / {{ getActiveGame.genre }} / {{ getActiveGame.hours }}
+          </p>
           <h3 class="game-letter-title">{{ getActiveGame.title }}</h3>
           <p class="game-letter-hook">{{ getActiveGame.hook }}</p>
           <div class="story-divider my-4" />

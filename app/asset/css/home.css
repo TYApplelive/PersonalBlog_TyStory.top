@@ -1,0 +1,177 @@
+/* 首页样式 */
+
+.hero-title,
+.logo-title {
+  font-family: "Miltonian-Tattoo", "Cimero", "QingKongMingChao", serif;
+  letter-spacing: 0.05em;
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.hero-title {
+  font-size: clamp(4rem, 10vw, 7rem);
+  line-height: 0.92;
+}
+
+.poster-card {
+  position: relative;
+  border-radius: 26px;
+  border: 1px solid rgba(183, 140, 77, 0.28);
+  background:
+    radial-gradient(circle at top, rgba(123, 30, 30, 0.28), transparent 45%),
+    linear-gradient(
+      180deg,
+      rgba(39, 18, 17, 0.97) 0%,
+      rgba(12, 9, 9, 0.98) 100%
+    );
+  padding: 1.6rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 239, 205, 0.05);
+}
+
+.poster-card::after {
+  content: "02";
+  position: absolute;
+  right: 1.2rem;
+  top: 1rem;
+  font-family: "Cimero", serif;
+  font-size: 4rem;
+  line-height: 1;
+  color: rgba(242, 221, 175, 0.08);
+}
+
+.ticket-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border-radius: 999px;
+  padding: 0.9rem 1.35rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.ticket-button:hover {
+  transform: translateY(-1px);
+}
+
+.ticket-button-primary {
+  background: linear-gradient(180deg, #ab6a52 0%, #7b1e1e 100%);
+  border-color: rgba(242, 221, 175, 0.18);
+  color: #fff4dc;
+}
+
+.ticket-button-secondary {
+  background: rgba(255, 244, 222, 0.06);
+  border-color: rgba(214, 188, 132, 0.22);
+  color: var(--film-paper);
+}
+
+.paper-panel .ticket-button-secondary {
+  border-color: rgba(92, 58, 32, 0.18);
+  background: rgba(255, 248, 235, 0.68);
+  color: var(--film-ink);
+}
+
+.story-divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(183, 140, 77, 0.48),
+    transparent
+  );
+}
+
+/* 标题强化：提高对比度和视觉层次 */
+.home-title,
+.film-label {
+  font-weight: 800;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 底部两个卡片的网格布局 */
+.home-bottom-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .home-bottom-grid {
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  }
+}
+
+/* 技术卡片区域容器 */
+.tech-reel-cards-wrapper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+/* 技术卡片占位符 */
+.tech-reel-placeholder {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 技术卡片出现动画 */
+.cards-rise-enter-active,
+.cards-rise-leave-active {
+  transition: all 0.3s ease-out;
+}
+
+.cards-rise-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.cards-rise-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.brand-label {
+  color: var(--film-gold-soft);
+}
+
+.home-subtitle {
+  color: var(--film-paper-soft);
+}
+
+.home-intro {
+  color: var(--film-muted-light);
+}
+
+.poster-label {
+  color: var(--film-gold-soft);
+}
+
+.poster-title-label {
+  color: var(--film-muted-light);
+}
+
+.poster-title {
+  color: var(--film-paper);
+}
+
+.poster-body {
+  color: var(--film-paper-soft);
+}
+
+.poster-notes {
+  color: var(--film-muted-light);
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    letter-spacing: 0.03em;
+    font-size: clamp(2rem, 8vw, 4rem);
+  }
+}
