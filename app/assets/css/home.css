@@ -1,102 +1,20 @@
 /* 首页样式 */
 
-.hero-title,
-.logo-title {
-  font-family: "Miltonian-Tattoo", "Cimero", "QingKongMingChao", serif;
-  letter-spacing: 0.05em;
-  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-}
+/* ========================================
+   以下样式已在 global.css 中定义，此处删除避免重复：
+   - .hero-title, .logo-title
+   - .poster-card, .poster-card::after
+   - .ticket-button 及其变体
+   - .story-divider
+   - .film-label
+   ======================================== */
 
-.hero-title {
-  font-size: clamp(4rem, 10vw, 7rem);
-  line-height: 0.92;
-}
-
-.poster-card {
-  position: relative;
-  border-radius: 26px;
-  border: 1px solid rgba(183, 140, 77, 0.28);
-  background:
-    radial-gradient(circle at top, rgba(123, 30, 30, 0.28), transparent 45%),
-    linear-gradient(
-      180deg,
-      rgba(39, 18, 17, 0.97) 0%,
-      rgba(12, 9, 9, 0.98) 100%
-    );
-  padding: 1.6rem;
-  box-shadow: inset 0 0 0 1px rgba(255, 239, 205, 0.05);
-}
-
-.poster-card::after {
-  content: "02";
-  position: absolute;
-  right: 1.2rem;
-  top: 1rem;
-  font-family: "Cimero", serif;
-  font-size: 4rem;
-  line-height: 1;
-  color: rgba(242, 221, 175, 0.08);
-}
-
-.ticket-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  border-radius: 999px;
-  padding: 0.9rem 1.35rem;
-  font-size: 0.76rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  border: 1px solid transparent;
-  cursor: pointer;
-}
-
-.ticket-button:hover {
-  transform: translateY(-1px);
-}
-
-.ticket-button-primary {
-  background: linear-gradient(180deg, #ab6a52 0%, #7b1e1e 100%);
-  border-color: rgba(242, 221, 175, 0.18);
-  color: #fff4dc;
-}
-
-.ticket-button-secondary {
-  background: rgba(255, 244, 222, 0.06);
-  border-color: rgba(214, 188, 132, 0.22);
-  color: var(--film-paper);
-}
-
-.paper-panel .ticket-button-secondary {
-  border-color: rgba(92, 58, 32, 0.18);
-  background: rgba(255, 248, 235, 0.68);
-  color: var(--film-ink);
-}
-
-.story-divider {
-  height: 1px;
-  width: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(183, 140, 77, 0.48),
-    transparent
-  );
-}
-
-/* 标题强化：提高对比度和视觉层次 */
-.home-title,
-.film-label {
-  font-weight: 800;
-  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-}
-
-/* 底部两个卡片的网格布局 */
+/* 首页独有样式 */
 .home-bottom-grid {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: 1fr;
+  align-items: start;
 }
 
 @media (min-width: 1024px) {

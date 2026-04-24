@@ -1,16 +1,25 @@
 <script setup lang="ts">
+/**
+ * 默认布局 (default.vue)
+ *
+ * 耦合关系：
+ *   - stores/site.ts             → 读取 nav 导航菜单
+ *   - components/customLogo.vue  → 站点 Logo
+ *   - components/customFooter.vue → 页脚
+ *
+ * 函数表：
+ *   - isActive(to)      → 判断路由是否匹配当前路径
+ *   - navLinkClass(to)  → 根据路由匹配返回导航链接样式类
+ */
+
 import { storeToRefs } from "pinia";
 
 const route = useRoute();
 const siteStore = useSiteStore();
 const { nav } = storeToRefs(siteStore);
 
-// 统一处理导航高亮，避免页面里重复写路由匹配逻辑。
 const isActive = (to: string) => {
-  if (to === "/") {
-    return route.path === "/";
-  }
-
+  if (to === "/") return route.path === "/";
   return route.path === to || route.path.startsWith(`${to}/`);
 };
 
@@ -28,12 +37,7 @@ const navLinkClass = (to: string) => {
             <customLogo />
 
             <nav class="flex flex-wrap items-center gap-2 md:justify-end">
-              <NuxtLink
-                v-for="item in nav"
-                :key="item.to"
-                :to="item.to"
-                :class="navLinkClass(item.to)"
-              >
+              <NuxtLink v-for="item in nav" :key="item.to" :to="item.to" :class="navLinkClass(item.to)">
                 {{ item.label }}
               </NuxtLink>
             </nav>

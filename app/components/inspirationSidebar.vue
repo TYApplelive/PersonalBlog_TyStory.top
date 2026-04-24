@@ -1,4 +1,17 @@
 <script setup lang="ts">
+/**
+ * 灵感侧边栏组件 (inspirationSidebar.vue)
+ *
+ * 耦合关系：
+ *   - stores/site.ts → InspirationItem 类型
+ *
+ * 应用方式：
+ *   <inspirationSidebar :inspirations="about.inspirations" :title="about.inspirationLabel" />
+ *
+ * 函数表：
+ *   - getTypeIcon(type): 根据灵感类型返回对应图标字符
+ */
+
 import type { InspirationItem } from "~/stores/site";
 
 defineProps<{
@@ -8,16 +21,11 @@ defineProps<{
 
 const getTypeIcon = (type: string) => {
   switch (type) {
-    case "movie":
-      return "◐";
-    case "music":
-      return "♫";
-    case "book":
-      return "▤";
-    case "quote":
-      return "※";
-    default:
-      return "•";
+    case "movie": return "◐";
+    case "music": return "♫";
+    case "book": return "▤";
+    case "quote": return "※";
+    default: return "•";
   }
 };
 </script>
@@ -26,20 +34,16 @@ const getTypeIcon = (type: string) => {
   <div class="inspiration-sidebar">
     <p class="film-label">{{ title || "Inspiration" }}</p>
     <div class="mt-4 space-y-3">
-      <div
-        v-for="item in inspirations"
-        :key="item.id"
-        class="inspiration-item"
-      >
+      <div v-for="item in inspirations" :key="item.id" class="inspiration-item">
         <div class="flex items-start gap-2">
           <span class="inspiration-icon text-lg">{{ getTypeIcon(item.type) }}</span>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
-              <p class="text-sm font-semibold text-[var(--film-ink)]">{{ item.title }}</p>
-              <span v-if="item.year" class="text-xs text-[var(--film-muted)]">{{ item.year }}</span>
+              <p class="text-sm font-semibold text-(--film-ink)">{{ item.title }}</p>
+              <span v-if="item.year" class="text-xs text-(--film-muted)">{{ item.year }}</span>
             </div>
-            <p v-if="item.subtitle" class="text-xs text-[var(--film-muted)]">{{ item.subtitle }}</p>
-            <p class="mt-1 text-xs leading-6 text-[var(--film-muted)]">{{ item.description }}</p>
+            <p v-if="item.subtitle" class="text-xs text-(--film-muted)">{{ item.subtitle }}</p>
+            <p class="mt-1 text-xs leading-6 text-(--film-muted)">{{ item.description }}</p>
           </div>
         </div>
       </div>

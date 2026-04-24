@@ -1,39 +1,43 @@
-/* Tech Reel module */
-
+/* Tech Reel uses fixed vertical flow: intro first, cards second. */
 .tech-reel-panel {
-  justify-content: flex-start;
+  align-self: start;
+  display: grid;
+  gap: 1.35rem;
 }
 
 .tech-reel-copy {
-  max-width: 44rem;
-}
-
-.tech-reel-heading {
-  max-width: 28rem;
+  display: grid;
+  gap: 1rem;
+  max-width: 42rem;
 }
 
 .tech-reel-title {
+  max-width: 30rem;
   color: var(--film-ink);
-  font-size: clamp(2.4rem, 4.2vw, 3.5rem);
-  line-height: 0.98;
+  font-size: clamp(2.35rem, 4.2vw, 3.5rem);
+  font-weight: 900;
+  line-height: 1;
   letter-spacing: -0.03em;
-  text-shadow: 0 4px 14px rgba(47, 30, 20, 0.14);
+  text-shadow: 0 4px 14px rgba(47, 30, 20, 0.16);
 }
 
 .tech-reel-body {
-  max-width: 28rem;
+  max-width: 34rem;
+  color: var(--film-muted);
   font-size: 0.98rem;
   line-height: 1.95;
-  color: var(--film-muted);
 }
 
 .tech-reel-state-note {
-  max-width: 28rem;
+  max-width: 34rem;
+  color: rgba(92, 58, 32, 0.7);
   font-size: 0.82rem;
   line-height: 1.8;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(92, 58, 32, 0.68);
+}
+
+.tech-reel-action {
+  justify-self: start;
 }
 
 .tech-reel-grid {
@@ -44,6 +48,7 @@
 
 .tech-card-mini {
   position: relative;
+  min-height: 15rem;
   border-radius: 20px;
   border: 1px solid rgba(92, 58, 32, 0.16);
   background: linear-gradient(
@@ -61,39 +66,40 @@
 
 .tech-card-mini:hover {
   transform: translateY(-3px);
-  box-shadow: 0 14px 28px rgba(55, 33, 18, 0.15);
   border-color: rgba(123, 30, 30, 0.25);
+  box-shadow: 0 14px 28px rgba(55, 33, 18, 0.15);
 }
 
 .tech-card-kicker {
   margin-bottom: 0.5rem;
+  color: var(--film-muted);
   font-size: 0.65rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--film-muted);
 }
 
 .tech-card-title {
   margin-bottom: 0.6rem;
-  font-size: 1.6rem;
-  font-weight: 700;
-  line-height: 1.15;
   color: var(--film-ink);
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1.15;
 }
 
 .tech-card-summary {
   margin-bottom: 0.8rem;
+  color: var(--film-muted);
   font-size: 0.92rem;
   line-height: 1.85;
-  color: var(--film-muted);
 }
 
 .tech-card-status {
   padding-top: 0.6rem;
   border-top: 1px solid rgba(92, 58, 32, 0.12);
-  font-size: 0.82rem;
-  line-height: 1.8;
   color: var(--film-accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.8;
 }
 
 .tech-cards-fade-enter-active,
