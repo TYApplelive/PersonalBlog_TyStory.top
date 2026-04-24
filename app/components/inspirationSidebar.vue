@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
 import type { InspirationItem } from "~/stores/site";
 
-const props = defineProps<{
+defineProps<{
   inspirations: InspirationItem[];
   title?: string;
 }>();
@@ -10,15 +9,15 @@ const props = defineProps<{
 const getTypeIcon = (type: string) => {
   switch (type) {
     case "movie":
-      return "🎬";
+      return "◐";
     case "music":
-      return "🎵";
+      return "♫";
     case "book":
-      return "📖";
+      return "▤";
     case "quote":
-      return "💭";
+      return "※";
     default:
-      return "✨";
+      return "•";
   }
 };
 </script>
@@ -26,7 +25,7 @@ const getTypeIcon = (type: string) => {
 <template>
   <div class="inspiration-sidebar">
     <p class="film-label">{{ title || "Inspiration" }}</p>
-    <div class="space-y-3 mt-4">
+    <div class="mt-4 space-y-3">
       <div
         v-for="item in inspirations"
         :key="item.id"
@@ -34,13 +33,13 @@ const getTypeIcon = (type: string) => {
       >
         <div class="flex items-start gap-2">
           <span class="inspiration-icon text-lg">{{ getTypeIcon(item.type) }}</span>
-          <div class="flex-1 min-w-0">
+          <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
-              <p class="font-semibold text-(--film-ink) text-sm">{{ item.title }}</p>
-              <span v-if="item.year" class="text-xs text-(--film-muted)">{{ item.year }}</span>
+              <p class="text-sm font-semibold text-[var(--film-ink)]">{{ item.title }}</p>
+              <span v-if="item.year" class="text-xs text-[var(--film-muted)]">{{ item.year }}</span>
             </div>
-            <p v-if="item.subtitle" class="text-xs text-(--film-muted)">{{ item.subtitle }}</p>
-            <p class="text-xs leading-6 text-(--film-muted) mt-1">{{ item.description }}</p>
+            <p v-if="item.subtitle" class="text-xs text-[var(--film-muted)]">{{ item.subtitle }}</p>
+            <p class="mt-1 text-xs leading-6 text-[var(--film-muted)]">{{ item.description }}</p>
           </div>
         </div>
       </div>

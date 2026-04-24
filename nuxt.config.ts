@@ -1,13 +1,12 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: false },
-  modules: ["@pinia/nuxt"],
+  modules: ["@pinia/nuxt", "@nuxt/content"],
   css: [
-    "~/asset/css/main.css",
-    "~/asset/css/global.css"
+    "~/assets/css/main.css",
+    "~/assets/css/global.css",
   ],
   vite: {
     plugins: [tailwindcss()],

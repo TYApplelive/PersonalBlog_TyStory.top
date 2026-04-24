@@ -1,0 +1,303 @@
+/* GameLife drawer styles */
+
+.game-drawer-toggle {
+  background: rgba(255, 244, 222, 0.06);
+  border-color: rgba(214, 188, 132, 0.22);
+  color: var(--film-paper);
+}
+
+.paper-panel .game-drawer-toggle {
+  border-color: rgba(123, 30, 30, 0.24);
+  background: linear-gradient(
+    180deg,
+    rgba(248, 233, 203, 0.96) 0%,
+    rgba(236, 211, 172, 0.96) 100%
+  );
+  box-shadow:
+    0 10px 24px rgba(92, 58, 32, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  color: var(--film-accent);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.paper-panel .game-drawer-toggle:hover {
+  border-color: rgba(123, 30, 30, 0.36);
+  background: linear-gradient(
+    180deg,
+    rgba(251, 239, 214, 1) 0%,
+    rgba(241, 219, 183, 0.98) 100%
+  );
+  box-shadow:
+    0 14px 28px rgba(92, 58, 32, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.34);
+  color: #7b1e1e;
+}
+
+.game-drawer-title {
+  color: var(--film-ink);
+  font-size: clamp(2.4rem, 4vw, 3.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  text-shadow: 0 4px 14px rgba(47, 30, 20, 0.14);
+}
+
+.game-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.game-letter {
+  min-width: 0;
+  border-radius: 22px;
+  border: 1px solid rgba(92, 58, 32, 0.16);
+  background: rgba(255, 251, 243, 0.8);
+  padding: 1.25rem;
+}
+
+.game-letter-meta {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--film-muted);
+}
+
+.game-letter-title {
+  margin-top: 0.8rem;
+  font-size: 1.7rem;
+  color: var(--film-ink);
+}
+
+.game-letter-hook {
+  margin-top: 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--film-accent);
+}
+
+.game-letter-section {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--film-muted);
+}
+
+.game-letter-note {
+  font-size: 0.95rem;
+  line-height: 1.9;
+  color: var(--film-ink);
+}
+
+.game-drawer-envelope-stage {
+  position: relative;
+  min-height: 33rem;
+  border-radius: 24px;
+  border: 1px solid rgba(92, 58, 32, 0.16);
+  background:
+    linear-gradient(180deg, rgba(59, 38, 24, 0.86) 0%, rgba(36, 21, 13, 0.92) 100%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(139, 92, 52, 0.22) 0 26px,
+      rgba(98, 63, 37, 0.22) 26px 52px
+    ),
+    linear-gradient(180deg, rgba(145, 96, 58, 0.2) 0%, rgba(55, 34, 20, 0.18) 100%);
+  overflow: hidden;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-drawer-envelope-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(255, 214, 163, 0.14), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.18));
+  pointer-events: none;
+}
+
+.game-drawer-envelope-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0.9rem;
+  border: 1px dashed rgba(214, 188, 132, 0.16);
+  border-radius: 18px;
+  pointer-events: none;
+}
+
+.game-envelope-stage-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.game-drawer-hint {
+  max-width: 18rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.72rem;
+  line-height: 1.7;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(242, 221, 175, 0.72);
+}
+
+.game-envelope-pile {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 22rem;
+}
+
+.game-envelope {
+  --envelope-rotate: 0deg;
+  position: absolute;
+  width: clamp(8.9rem, 17vw, 10.4rem);
+  min-height: 8.6rem;
+  border: 1px solid rgba(92, 58, 32, 0.22);
+  border-radius: 20px;
+  background: linear-gradient(
+    180deg,
+    rgba(252, 245, 234, 0.96) 0%,
+    rgba(236, 218, 187, 0.95) 100%
+  );
+  box-shadow:
+    0 10px 22px rgba(22, 12, 7, 0.32),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+  color: var(--film-ink);
+  padding: 1.05rem 0.95rem 0.9rem;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  overflow: hidden;
+  transform: rotate(var(--envelope-rotate));
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.game-envelope-wide {
+  width: clamp(10.2rem, 20vw, 12rem);
+}
+
+.game-envelope:hover,
+.game-envelope-active {
+  transform: translateY(-4px) rotate(var(--envelope-rotate)) scale(1.02);
+  box-shadow:
+    0 16px 28px rgba(22, 12, 7, 0.38),
+    0 0 0 1px rgba(255, 255, 255, 0.16) inset;
+  border-color: rgba(123, 30, 30, 0.32);
+}
+
+.game-envelope-dragging {
+  cursor: grabbing;
+  transform: rotate(var(--envelope-rotate)) scale(1.02);
+  box-shadow:
+    0 20px 34px rgba(22, 12, 7, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.18) inset;
+}
+
+.game-envelope-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--film-ink);
+  font-size: 1rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.game-envelope-meta {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 0.45rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: var(--film-muted);
+  font-size: 0.72rem;
+  line-height: 1.7;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.drawer-rise-enter-active,
+.drawer-rise-leave-active {
+  transition: all 0.24s ease;
+}
+
+.drawer-rise-enter-from,
+.drawer-rise-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (max-width: 960px) {
+  .game-drawer-envelope-stage {
+    min-height: 29rem;
+  }
+
+  .game-envelope-pile {
+    min-height: 20rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-drawer-title {
+    font-size: 2.3rem;
+  }
+
+  .game-drawer-hint {
+    font-size: 0.68rem;
+    max-width: 100%;
+  }
+
+  .game-envelope {
+    width: clamp(8.25rem, 31vw, 9.6rem);
+    min-height: 7.8rem;
+  }
+
+  .game-envelope-wide {
+    width: clamp(9.2rem, 36vw, 10.8rem);
+  }
+
+  .game-letter {
+    padding: 1.1rem;
+  }
+}
+
+@media (max-width: 512px) {
+  .game-drawer {
+    gap: 1rem;
+  }
+
+  .game-drawer-envelope-stage {
+    min-height: 25rem;
+    padding: 1rem;
+  }
+
+  .game-envelope-pile {
+    min-height: 18rem;
+  }
+
+  .game-envelope {
+    width: clamp(7.6rem, 32vw, 8.4rem);
+    min-height: 7.1rem;
+    padding: 0.9rem 0.8rem 0.75rem;
+  }
+
+  .game-envelope-wide {
+    width: clamp(8.4rem, 37vw, 9.5rem);
+  }
+
+  .game-envelope-title {
+    font-size: 0.92rem;
+  }
+
+  .game-envelope-meta {
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+  }
+}
