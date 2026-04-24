@@ -16,20 +16,6 @@ export default defineNuxtConfig({
     "~/assets/css/global.css",
     "~/assets/css/admin.css",
   ],
-  imports: {
-    dirs: [
-      "shared/utils",
-      "shared/types",
-    ],
-  },
-  nitro: {
-    imports: {
-      dirs: [
-        "shared/utils",
-        "shared/types",
-      ],
-    },
-  },
   runtimeConfig: {
     public: {
       imgBedConfigSalt: process.env.IMG_BED_CONFIG_SALT || "default-salt-change-me",

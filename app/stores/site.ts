@@ -24,7 +24,7 @@
  *   - bringGameToFront(gameId)        → 将游戏卡牌置于顶层
  *   - openGameEnvelope(gameId)        → 打开指定游戏信封
  *   - updateGameCardPosition(id, pos) → 更新卡牌位置
- *   - getBlogPostById(id)             → 按 ID 查找博客文章
+ *   - getBlogPostBySlug(slug)      → 按 slug 查找博客文章
  *   - loadBlogPosts()                 → 预留：从 API 加载文章
  */
 
@@ -81,7 +81,7 @@ export interface ScatterSlot { x: number; y: number; angle: string }
 // 博客装饰接口
 export interface BlogOrnament { id: string; label: string; value: string }
 // 博客文章接口
-export interface BlogPost { id: number; title: string; date: string; excerpt: string; content: string; readTime: string; tags: string[] }
+export interface BlogPost { title: string; date: string; excerpt: string; content: string; readTime: string; tags: string[]; path: string }
 
 // 数值钳制：限制百分比在 [0, 100] 范围内
 const clampPercent = (value: number) => Math.min(100, Math.max(0, value));
@@ -187,9 +187,9 @@ export const useSiteStore = defineStore("site", {
       targetGame.y = clampPercent(position.y);
     },
 
-    // 按 ID 查找博客文章
-    getBlogPostById(postId: number) {
-      return this.blogPosts.find((post) => post.id === postId) ?? null;
+    // 按 slug 查找博客文章
+    getBlogPostBySlug(slug: string) {
+      return this.blogPosts.find((post) => post.path === `/blog/${slug}`) ?? null;
     },
 
     // 预留：从 API 加载博客文章

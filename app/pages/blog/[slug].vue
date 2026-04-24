@@ -1,7 +1,14 @@
 <script setup lang="ts">
+/**
+ * 博客详情页 (blog/[slug].vue)
+ *
+ * 耦合关系：
+ *   - stores/site.ts                    → 读取 blog 配置
+ *   - server/api/blog/[slug].get.ts     → 通过 API 获取单篇文章
+ */
+
 import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
-import type { BlogContentPost } from "~/utils/blog-content";
 
 const route = useRoute();
 const siteStore = useSiteStore();
@@ -9,32 +16,21 @@ const { blog } = storeToRefs(siteStore);
 
 const introCardOpen = ref(false);
 
-const postId = computed(() => Number(route.params.id));
+const slug = computed(() => route.params.slug as string);
 
-// 同时返回 Nuxt Content 文档（供 ContentRenderer）和 API 元数据（供 excerpt/title 等）
-const { data: postBundle } = await useAsyncData<{ doc: any; apiMeta: BlogContentPost } | null>(
-  `blog-post-${postId.value}`,
-  async () => {
-    const meta = await $fetch<BlogContentPost | null>(`/api/blog/${postId.value}`);
-    if (!meta?.stem) return null;
-    const allDocs = await queryCollection('blog').all();
-    const doc = (allDocs as any[]).find((d: any) => d.stem === meta.stem);
-    if (!doc) return null;
-    return { doc, apiMeta: meta };
-  },
-);
-
-const post = computed(() => postBundle.value?.doc || null);
-const postApiMeta = computed(() => postBundle.value?.apiMeta || null);
+// 直接请求单篇 API，拿到完整 Content 文档
+const { data: post } = await useFetch<any>(`/api/blog/${slug.value}`, {
+  key: `blog-post-${slug.value}`,
+});
 
 const postTitle = computed(() => post.value?.title || blog.value.emptyTitle);
-// excerpt 来自 API 正确解析的 frontmatter，而非 Nuxt Content 自动生成的 description
-const postExcerpt = computed(() => postApiMeta.value?.excerpt || blog.value.articleFallbackDescription);
-const postTags = computed(() => post.value?.meta?.tags || []);
-const postDate = computed(() => post.value?.meta?.date || '');
+const postExcerpt = computed(() => post.value?.excerpt || blog.value.articleFallbackDescription);
+const postTags = computed(() => post.value?.tags || []);
+const postDate = computed(() => post.value?.date || '');
 
 const introSummary = computed(() => postExcerpt.value);
 
+// 去掉正文中的 h1 标题（页面已有标题展示）
 const displayBody = computed(() => {
   if (!post.value) return null;
   const clone = JSON.parse(JSON.stringify(post.value));

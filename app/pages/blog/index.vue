@@ -5,23 +5,28 @@
  * 耦合关系：
  *   - stores/site.ts              → 读取 blog 配置
  *   - server/api/blog/posts.get.ts → 通过 API 获取文章列表
- *   - pages/blog/[id].vue         → 列表中的文章链接跳转目标
- *
- * 函数表：
- *   无自定义函数，仅使用组合式 API
+ *   - pages/blog/[slug].vue       → 列表中的文章链接跳转目标
  */
 
 import { storeToRefs } from "pinia";
-import type { BlogContentPost } from "~/utils/blog-content";
+
+// 列表 DTO 类型
+interface BlogPostItem {
+  title: string
+  date: string
+  excerpt: string
+  readTime: string
+  tags: string[]
+  path: string
+}
 
 const siteStore = useSiteStore();
 const { blog } = storeToRefs(siteStore);
 
-const { data: posts } = await useAsyncData<BlogContentPost[]>(
-  "blog-posts",
-  () => $fetch("/api/blog/posts"),
-  { default: () => [] },
-);
+// 获取文章列表
+const { data: posts } = await useFetch<BlogPostItem[]>("/api/blog/posts", {
+  default: () => [],
+})
 
 useSeoMeta({
   title: () => blog.value.seoTitle,
@@ -58,11 +63,11 @@ useSeoMeta({
       </section>
 
       <section class="mt-6 grid gap-4 md:gap-5">
-        <article v-for="post in posts" :key="post.id" class="paper-panel">
+        <article v-for="post in posts" :key="post.path" class="paper-panel">
           <p class="text-xs uppercase tracking-[0.3em] blog-date">{{ post.date }}</p>
 
           <h2 class="mt-3 text-xl md:text-2xl blog-post-title">
-            <NuxtLink :to="`/blog/${post.id}`" class="blog-title-link">
+            <NuxtLink :to="post.path" class="blog-title-link">
               {{ post.title }}
             </NuxtLink>
           </h2>
@@ -78,7 +83,7 @@ useSeoMeta({
           </div>
 
           <div class="mt-5">
-            <NuxtLink :to="`/blog/${post.id}`" class="ticket-button ticket-button-secondary">
+            <NuxtLink :to="post.path" class="ticket-button ticket-button-secondary">
               {{ blog.readLabel }}
             </NuxtLink>
           </div>
