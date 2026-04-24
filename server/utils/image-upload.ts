@@ -9,8 +9,6 @@
  *   - UploadResult (类型)                      → 上传结果数据结构
  */
 
-import { ImgBedConfig, buildImgBedUrl, resolveImgBedSrc, buildImgBedAuthHeaders } from '../../shared/utils/imgbed-config';
-
 const UPLOAD_CONFIG = {
     timeout: 15000,
     maxRetries: 3,

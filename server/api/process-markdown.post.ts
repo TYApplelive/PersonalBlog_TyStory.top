@@ -14,8 +14,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { uploadToImgBed } from '../utils/image-upload';
-import { ImgBedConfig } from '../../shared/utils/imgbed-config';
-import { extractImages, getLocalImages, replaceImagePath } from '../../shared/utils/markdown-parser';
 
 // 处理请求
 export interface ProcessRequest {
