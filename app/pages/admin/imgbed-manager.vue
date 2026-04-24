@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
 
 interface TestResult {
     success: boolean;
@@ -18,8 +17,8 @@ const saveMessage = ref('');
 const normalizedApiUrl = computed(() => normalizeImgBedBaseUrl(config.value.apiUrl));
 const hasToken = computed(() => config.value.token.trim().length > 0);
 
-onMounted(() => {
-    config.value = getImgBedConfig();
+onMounted(async () => {
+    config.value = await getImgBedConfig();
 });
 
 function showTemporaryMessage(message: string) {
@@ -44,10 +43,7 @@ function validateApiUrl(): boolean {
     }
 }
 
-/**
- * Random image endpoint is public in CloudFlare ImgBed docs.
- * Use <img> loading instead of fetch to avoid CORS false negatives.
- */
+// 测试随机图接口
 function testRandomImage() {
     if (!validateApiUrl()) return;
 
@@ -86,6 +82,7 @@ function testRandomImage() {
     image.src = imageUrl;
 }
 
+// 测试管理接口 Token
 async function testManageToken() {
     if (!validateApiUrl()) return;
 
@@ -133,7 +130,8 @@ async function testManageToken() {
     }
 }
 
-function saveConfig() {
+// 保存配置
+async function saveConfig() {
     if (!config.value.apiUrl.trim()) {
         console.error('[图床管理] 保存失败: API 地址为空');
         showTemporaryMessage('错误：API 地址不能为空。');
@@ -144,19 +142,21 @@ function saveConfig() {
     console.log(`[图床管理] API 地址: ${config.value.apiUrl}`);
     console.log(`[图床管理] Token 长度: ${config.value.token.length}`);
 
-    saveImgBedConfig({
+    await saveImgBedConfig({
         apiUrl: normalizedApiUrl.value,
         token: config.value.token.trim(),
     });
-    config.value = getImgBedConfig();
+    config.value = await getImgBedConfig();
     console.log('[图床管理] 配置已保存到 localStorage');
     showTemporaryMessage('配置已保存。');
 }
 
-function resetConfig() {
+
+// 重置配置
+async function resetConfig() {
     console.log('[图床管理] 重置配置');
     resetImgBedConfig();
-    config.value = getImgBedConfig();
+    config.value = await getImgBedConfig();
     randomResult.value = null;
     tokenResult.value = null;
     console.log('[图床管理] 已重置为默认配置');

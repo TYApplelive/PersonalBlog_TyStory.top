@@ -1,104 +1,169 @@
 <script setup lang="ts">
-useHead({
-    title: '系统设置 - 博客',
-});
+useHead({ title: '系统设置 - TY\'s Blog' });
+
+const tabs = ['基本信息', '导航配置', '页脚配置', '站点缓存'];
+const activeTab = ref(0);
+
+const { data: posts } = await useAsyncData('admin-settings-posts', () => $fetch('/api/blog/posts'), { default: () => [] });
+
+const { data: pkg } = await useAsyncData('admin-pkg', () => $fetch('/package.json'), { default: () => null });
 </script>
 
 <template>
-    <div class="admin-page">
-        <header class="page-header">
-            <h1>⚙️ 系统设置</h1>
-            <p class="page-subtitle">配置博客系统参数</p>
-        </header>
+  <div class="admin-page">
+    <header class="admin-header">
+      <p class="eyebrow">SETTINGS</p>
+      <h1>系统设置</h1>
+      <p class="admin-subtitle">查看博客系统配置，静态配置在 <code>app/utils/site-data/</code> 中管理。</p>
+    </header>
 
-        <main class="page-content">
-            <div class="paper-panel">
-                <div class="content-placeholder">
-                    <p class="placeholder-text">系统设置功能开发中...</p>
-                    <p class="placeholder-hint">当前站点配置在 <code>app/utils/site-data/</code> 目录中管理</p>
-                    <NuxtLink to="/about" class="nav-button">关于本站</NuxtLink>
-                </div>
-            </div>
-        </main>
-    </div>
+    <main class="admin-main">
+      <div class="tabs-row">
+        <button v-for="(tab, idx) in tabs" :key="idx"
+          :class="['tab-btn', { active: activeTab === idx }]"
+          @click="activeTab = idx">
+          {{ tab }}
+        </button>
+      </div>
+
+      <!-- 基本信息 -->
+      <div v-if="activeTab === 0" class="admin-panel">
+        <h2>站点信息</h2>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">文章总数</span>
+            <span class="info-value">{{ posts.length }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">博客框架</span>
+            <span class="info-value">Nuxt {{ pkg?.dependencies?.nuxt?.replace('^', '') || '4.x' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">内容管理</span>
+            <span class="info-value">Nuxt Content v3 + Markdown</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">文章目录</span>
+            <span class="info-value"><code>content/blog/</code></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">静态配置目录</span>
+            <span class="info-value"><code>app/utils/site-data/</code></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 导航配置 -->
+      <div v-if="activeTab === 1" class="admin-panel">
+        <h2>导航菜单</h2>
+        <p style="color:var(--film-paper-soft);margin-bottom:1rem;line-height:1.7;">
+          导航配置在 <code>app/utils/site-data/navigation.ts</code> 中维护。
+          修改后需重启开发服务器生效。
+        </p>
+        <table class="data-table">
+          <thead>
+            <tr><th>标签</th><th>路径</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>首页</td><td><code>/</code></td></tr>
+            <tr><td>关于</td><td><code>/about</code></td></tr>
+            <tr><td>博客</td><td><code>/blog</code></td></tr>
+            <tr><td>管理（开发模式）</td><td><code>/admin</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 页脚配置 -->
+      <div v-if="activeTab === 2" class="admin-panel">
+        <h2>页脚信息</h2>
+        <p style="color:var(--film-paper-soft);margin-bottom:1rem;line-height:1.7;">
+          页脚配置在 <code>app/utils/site-data/footer.ts</code> 中维护。
+        </p>
+        <table class="data-table">
+          <thead>
+            <tr><th>字段</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>End Credits</td><td>页脚标题</td></tr>
+            <tr><td>Contacts</td><td>联系方式区域标签</td></tr>
+            <tr><td>Act II / Built by</td><td>页脚署名</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 站点缓存 -->
+      <div v-if="activeTab === 3" class="admin-panel">
+        <h2>缓存与数据刷新</h2>
+        <p style="color:var(--film-paper-soft);margin-bottom:1rem;line-height:1.7;">
+          当前使用 asyncData 缓存策略，刷新页面时会重新获取数据。
+        </p>
+        <NuxtLink to="/admin" class="btn btn-secondary">返回首页</NuxtLink>
+      </div>
+    </main>
+  </div>
 </template>
 
 <style scoped>
-.admin-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    color: var(--film-paper);
+.tabs-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
-.page-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
+.tab-btn {
+  padding: 0.6rem 1.2rem;
+  border: 1px solid rgba(183, 140, 77, 0.25);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--film-paper-soft);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
 }
 
-.page-header h1 {
-    font-size: 2rem;
-    color: var(--film-gold);
-    margin-bottom: 0.5rem;
-    font-weight: 800;
-    text-shadow: 0 2px 8px rgba(183, 140, 77, 0.3);
+.tab-btn:hover {
+  border-color: rgba(183, 140, 77, 0.45);
+  color: var(--film-paper);
 }
 
-.page-subtitle {
-    color: var(--film-muted-light);
-    font-size: 1rem;
+.tab-btn.active {
+  background: rgba(183, 140, 77, 0.16);
+  border-color: rgba(183, 140, 77, 0.5);
+  color: var(--film-gold-soft);
 }
 
-.paper-panel {
-    background: rgba(242, 221, 175, 0.06);
-    border: 1px solid rgba(183, 140, 77, 0.18);
-    border-radius: 12px;
-    padding: 3rem 2rem;
-    text-align: center;
+.info-list {
+  display: grid;
+  gap: 0.75rem;
 }
 
-.content-placeholder {
-    max-width: 600px;
-    margin: 0 auto;
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid rgba(183, 140, 77, 0.1);
 }
 
-.placeholder-text {
-    font-size: 1.25rem;
-    color: var(--film-gold-soft);
-    margin-bottom: 1rem;
-    font-weight: 600;
+.info-item:last-child {
+  border-bottom: none;
 }
 
-.placeholder-hint {
-    color: var(--film-muted-light);
-    margin-bottom: 2rem;
-    line-height: 1.7;
+.info-label {
+  color: var(--film-muted-light);
+  font-weight: 600;
 }
 
-.placeholder-hint code {
-    background: rgba(183, 140, 77, 0.15);
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    color: var(--film-gold-soft);
-    font-family: monospace;
+.info-value {
+  color: var(--film-paper);
+  font-weight: 500;
 }
 
-.nav-button {
-    display: inline-block;
-    padding: 0.85rem 1.75rem;
-    background: rgba(183, 140, 77, 0.15);
-    border: 1px solid rgba(183, 140, 77, 0.3);
-    border-radius: 8px;
-    color: var(--film-paper);
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.24s ease;
-}
-
-.nav-button:hover {
-    background: rgba(183, 140, 77, 0.25);
-    border-color: rgba(183, 140, 77, 0.45);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+.info-value code {
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(183, 140, 77, 0.15);
+  color: var(--film-gold-soft);
 }
 </style>

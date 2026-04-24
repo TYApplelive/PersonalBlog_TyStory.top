@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 
 // 定义 API 响应接口
 interface ProcessResponse {
@@ -23,12 +23,18 @@ const progress = ref(0);
 const statusText = ref('');
 const errors = ref<Array<{ path: string; error: string }>>([]);
 
-// 计算属性
+// 图床配置（使用 ref 替代 computed 以支持异步）
+const currentConfig = ref<ImgBedConfig>({ apiUrl: '', token: '' });
+
+// 初始化配置
+watchEffect(async () => {
+    currentConfig.value = await getImgBedConfig();
+});
+
 const hasContent = computed(() => mdContent.value.length > 0);
 const localImages = computed(() => getLocalImages(extractedImages.value));
 const remoteImages = computed(() => extractedImages.value.filter(img => img.pathType === 'remote'));
 const hasErrors = computed(() => errors.value.length > 0);
-const currentConfig = computed(() => getImgBedConfig());
 const hasUploadToken = computed(() => currentConfig.value.token.trim().length > 0);
 
 function handleFileUpload(event: Event) {

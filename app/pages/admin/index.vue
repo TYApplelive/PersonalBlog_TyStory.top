@@ -1,121 +1,129 @@
 <script setup lang="ts">
-useHead({
-    title: '管理中心 - TY\'s Blog',
-});
+useHead({ title: '管理中心 - TY\'s Blog' });
+
+const { data: posts } = await useAsyncData('admin-posts', () => $fetch('/api/blog/posts'), { default: () => [] });
+const allTags = computed(() => [...new Set(posts.value.flatMap(p => p.tags).filter(Boolean))]);
+const allCategories = computed(() => [...new Set(posts.value.map(p => p.title?.charAt(0) ?? '其他').filter(Boolean))]);
 
 const navItems = [
-    { to: '/admin/md-images', icon: 'MD', label: 'Markdown 图片处理', desc: '提取本地图片并上传到图床' },
-    { to: '/admin/imgbed-manager', icon: 'IMG', label: '图床管理', desc: '配置 CloudFlare ImgBed API 与 Token' },
+  { to: '/admin/posts', icon: '📝', label: '文章管理', desc: '查看、编辑和管理所有博客文章', badge: posts.value.length },
+  { to: '/admin/posts/new', icon: '➕', label: '新建文章', desc: '创建新的 Markdown 博客文章' },
+  { to: '/admin/categories', icon: '🏷️', label: '分类管理', desc: '管理博客文章分类信息' },
+  { to: '/admin/tags', icon: '🔖', label: '标签管理', desc: '查看和管理文章标签', badge: allTags.value.length },
+  { to: '/admin/md-images', icon: '🖼️', label: 'Markdown 图片处理', desc: '提取本地图片并上传到图床' },
+  { to: '/admin/imgbed-manager', icon: '☁️', label: '图床管理', desc: '配置 CloudFlare ImgBed API 与 Token' },
+  { to: '/admin/settings', icon: '⚙️', label: '系统设置', desc: '查看和配置博客系统参数' },
+  { to: '/admin/users', icon: '👤', label: '用户管理', desc: '管理博客用户和所有者信息' },
 ];
 </script>
 
 <template>
-    <div class="admin-dashboard">
-        <header class="admin-header">
-            <p class="eyebrow">ADMIN ROOM</p>
-            <h1>管理中心</h1>
-            <p class="admin-subtitle">当前只保留与博客写作流程直接相关的工具入口。</p>
-        </header>
+  <div class="admin-page">
+    <header class="admin-header">
+      <p class="eyebrow">ADMIN ROOM</p>
+      <h1>管理中心</h1>
+      <p class="admin-subtitle">博客管理后台，涵盖文章、分类、标签、图床和系统配置。</p>
+    </header>
 
-        <main class="admin-main">
-            <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to" class="tool-card">
-                <span class="tool-icon">{{ item.icon }}</span>
-                <span class="tool-copy">
-                    <strong>{{ item.label }}</strong>
-                    <small>{{ item.desc }}</small>
-                </span>
-            </NuxtLink>
-        </main>
-    </div>
+    <main class="admin-main">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">{{ posts.length }}</div>
+          <div class="stat-label">文章总数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ allTags.length }}</div>
+          <div class="stat-label">标签总数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ allCategories.length }}</div>
+          <div class="stat-label">分类数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ posts.length ? [...new Set(posts.map(p => p.date?.slice(0, 4)))].length : 0 }}</div>
+          <div class="stat-label">发布年份</div>
+        </div>
+      </div>
+
+      <div class="nav-grid">
+        <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to" class="tool-card">
+          <span class="tool-icon">{{ item.icon }}</span>
+          <span class="tool-copy">
+            <strong>{{ item.label }}</strong>
+            <small>{{ item.desc }}</small>
+          </span>
+          <span v-if="item.badge !== undefined" class="tool-badge">{{ item.badge }}</span>
+        </NuxtLink>
+      </div>
+    </main>
+  </div>
 </template>
 
 <style scoped>
-.admin-dashboard {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 2rem;
-    color: var(--film-paper);
-}
-
-.admin-header {
-    margin-bottom: 2rem;
-}
-
-.eyebrow {
-    color: var(--film-gold-soft);
-    font-size: 0.75rem;
-    font-weight: 800;
-    letter-spacing: 0.22em;
-}
-
-.admin-header h1 {
-    margin: 0.25rem 0 0.5rem;
-    color: var(--film-gold);
-    font-size: clamp(2rem, 5vw, 3rem);
-}
-
-.admin-subtitle {
-    color: var(--film-paper-soft);
-}
-
-.admin-main {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
 .tool-card {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    padding: 1.3rem;
-    border: 1px solid rgba(183, 140, 77, 0.24);
-    border-radius: 16px;
-    background: rgba(242, 221, 175, 0.06);
-    color: var(--film-paper);
-    text-decoration: none;
-    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.3rem;
+  border: 1px solid rgba(183, 140, 77, 0.24);
+  border-radius: 16px;
+  background: rgba(242, 221, 175, 0.06);
+  color: var(--film-paper);
+  text-decoration: none;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  position: relative;
 }
 
 .tool-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(183, 140, 77, 0.46);
-    background: rgba(183, 140, 77, 0.14);
+  transform: translateY(-2px);
+  border-color: rgba(183, 140, 77, 0.46);
+  background: rgba(183, 140, 77, 0.14);
 }
 
 .tool-icon {
-    display: grid;
-    place-items: center;
-    width: 3.2rem;
-    height: 3.2rem;
-    border-radius: 999px;
-    background: rgba(20, 12, 9, 0.45);
-    color: var(--film-gold);
-    font-weight: 900;
-    letter-spacing: 0.08em;
+  font-size: 1.5rem;
+  display: grid;
+  place-items: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 999px;
+  background: rgba(20, 12, 9, 0.45);
 }
 
 .tool-copy {
-    display: grid;
-    gap: 0.25rem;
+  display: grid;
+  gap: 0.25rem;
+  flex: 1;
 }
 
 .tool-copy strong {
-    color: var(--film-gold-soft);
-    font-size: 1.1rem;
+  color: var(--film-gold-soft);
+  font-size: 1.1rem;
 }
 
 .tool-copy small {
-    color: var(--film-paper-soft);
+  color: var(--film-paper-soft);
+  font-size: 0.85rem;
+}
+
+.tool-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(183, 140, 77, 0.2);
+  color: var(--film-gold-soft);
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 @media (max-width: 720px) {
-    .admin-dashboard {
-        padding: 1rem;
-    }
-
-    .admin-main {
-        grid-template-columns: 1fr;
-    }
+  .nav-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -1,96 +1,154 @@
 <script setup lang="ts">
-useHead({
-    title: '分类管理 - 博客',
+useHead({ title: '分类管理 - TY\'s Blog' });
+
+const { data: posts } = await useAsyncData('admin-cat-posts', () => $fetch('/api/blog/posts'), { default: () => [] });
+
+const categories = computed(() => {
+  const map = new Map<string, { name: string; count: number; posts: string[] }>();
+  for (const post of posts.value) {
+    const tags = (post.tags as string[]) || [];
+    if (tags.length === 0) {
+      const key = '未分类';
+      if (!map.has(key)) map.set(key, { name: key, count: 0, posts: [] });
+      map.get(key)!.count++;
+      map.get(key)!.posts.push(post.title);
+    } else {
+      for (const tag of tags) {
+        if (!map.has(tag)) map.set(tag, { name: tag, count: 0, posts: [] });
+        map.get(tag)!.count++;
+        map.get(tag)!.posts.push(post.title);
+      }
+    }
+  }
+  return [...map.entries()].map(([, v]) => v).sort((a, b) => b.count - a.count);
 });
+
+const newCategoryName = ref('');
+const statusText = ref('');
+
+function addCategory() {
+  const name = newCategoryName.value.trim();
+  if (!name) return;
+  if (categories.value.some(c => c.name === name)) {
+    statusText.value = `分类「${name}」已存在`;
+    return;
+  }
+  statusText.value = `分类「${name}」已记录（需在文章 Frontmatter 中添加该标签）`;
+  newCategoryName.value = '';
+}
 </script>
 
 <template>
-    <div class="admin-page">
-        <header class="page-header">
-            <h1>🏷️ 分类管理</h1>
-            <p class="page-subtitle">管理博客文章分类</p>
-        </header>
+  <div class="admin-page">
+    <header class="admin-header">
+      <p class="eyebrow">CATEGORIES</p>
+      <h1>分类管理</h1>
+      <p class="admin-subtitle">博客文章分类源于标签，在文章 Frontmatter 中定义。</p>
+    </header>
 
-        <main class="page-content">
-            <div class="paper-panel">
-                <div class="content-placeholder">
-                    <p class="placeholder-text">分类管理功能开发中...</p>
-                    <p class="placeholder-hint">当前分类信息在文章 Frontmatter 中定义</p>
-                    <NuxtLink to="/blog" class="nav-button">查看博客列表</NuxtLink>
-                </div>
+    <main class="admin-main">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">{{ categories.length }}</div>
+          <div class="stat-label">分类总数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ categories.filter(c => c.count > 1).length }}</div>
+          <div class="stat-label">多文章分类</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ categories.reduce((s, c) => s + c.count, 0) }}</div>
+          <div class="stat-label">标签总数</div>
+        </div>
+      </div>
+
+      <div class="admin-panel">
+        <div class="input-group" style="margin-bottom:1.25rem;">
+          <input v-model="newCategoryName" type="text" placeholder="新建分类名称（将作为标签添加到文章）" class="form-input"
+            @keyup.enter="addCategory">
+          <button class="btn btn-primary" @click="addCategory">添加</button>
+        </div>
+        <p v-if="statusText" class="status-message info" style="margin-bottom:1rem;">{{ statusText }}</p>
+
+        <div v-if="categories.length === 0" class="empty-state">
+          <div class="empty-icon">🏷️</div>
+          <div class="empty-text">暂无分类</div>
+          <p class="empty-hint">在文章 Frontmatter 中添加 tags 字段即可创建分类。</p>
+        </div>
+
+        <div v-else class="category-grid">
+          <div v-for="cat in categories" :key="cat.name" class="category-card">
+            <div class="cat-header">
+              <span class="cat-name">{{ cat.name }}</span>
+              <span class="cat-count">{{ cat.count }} 篇</span>
             </div>
-        </main>
-    </div>
+            <div class="cat-posts">
+              <span v-for="postTitle in cat.posts.slice(0, 3)" :key="postTitle" class="cat-post-title">
+                {{ postTitle }}
+              </span>
+              <span v-if="cat.posts.length > 3" class="cat-more">+{{ cat.posts.length - 3 }} 篇</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 </template>
 
 <style scoped>
-.admin-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    color: var(--film-paper);
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.85rem;
 }
 
-.page-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
+.category-card {
+  padding: 1rem;
+  border: 1px solid rgba(183, 140, 77, 0.18);
+  border-radius: 12px;
+  background: rgba(242, 221, 175, 0.04);
+  transition: border-color 0.2s, background 0.2s;
 }
 
-.page-header h1 {
-    font-size: 2rem;
-    color: var(--film-gold);
-    margin-bottom: 0.5rem;
-    font-weight: 800;
-    text-shadow: 0 2px 8px rgba(183, 140, 77, 0.3);
+.category-card:hover {
+  border-color: rgba(183, 140, 77, 0.35);
+  background: rgba(183, 140, 77, 0.08);
 }
 
-.page-subtitle {
-    color: var(--film-muted-light);
-    font-size: 1rem;
+.cat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
 }
 
-.paper-panel {
-    background: rgba(242, 221, 175, 0.06);
-    border: 1px solid rgba(183, 140, 77, 0.18);
-    border-radius: 12px;
-    padding: 3rem 2rem;
-    text-align: center;
+.cat-name {
+  color: var(--film-gold-soft);
+  font-weight: 700;
+  font-size: 1.05rem;
 }
 
-.content-placeholder {
-    max-width: 600px;
-    margin: 0 auto;
+.cat-count {
+  color: var(--film-muted-light);
+  font-size: 0.85rem;
 }
 
-.placeholder-text {
-    font-size: 1.25rem;
-    color: var(--film-gold-soft);
-    margin-bottom: 1rem;
-    font-weight: 600;
+.cat-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
-.placeholder-hint {
-    color: var(--film-muted-light);
-    margin-bottom: 2rem;
-    line-height: 1.7;
+.cat-post-title {
+  font-size: 0.85rem;
+  color: var(--film-paper-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.nav-button {
-    display: inline-block;
-    padding: 0.85rem 1.75rem;
-    background: rgba(183, 140, 77, 0.15);
-    border: 1px solid rgba(183, 140, 77, 0.3);
-    border-radius: 8px;
-    color: var(--film-paper);
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.24s ease;
-}
-
-.nav-button:hover {
-    background: rgba(183, 140, 77, 0.25);
-    border-color: rgba(183, 140, 77, 0.45);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+.cat-more {
+  font-size: 0.8rem;
+  color: var(--film-muted-light);
 }
 </style>

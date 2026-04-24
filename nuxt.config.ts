@@ -14,6 +14,7 @@ export default defineNuxtConfig({
   css: [
     "~/assets/css/main.css",
     "~/assets/css/global.css",
+    "~/assets/css/admin.css",
   ],
   imports: {
     dirs: [
@@ -27,6 +28,11 @@ export default defineNuxtConfig({
         "shared/utils",
         "shared/types",
       ],
+    },
+  },
+  runtimeConfig: {
+    public: {
+      imgBedConfigSalt: process.env.IMG_BED_CONFIG_SALT || "default-salt-change-me",
     },
   },
   vite: {
