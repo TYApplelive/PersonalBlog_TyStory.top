@@ -3,9 +3,9 @@
  * 博客列表页 (blog/index.vue)
  *
  * 耦合关系：
- *   - stores/site.ts              → 读取 blog 配置
- *   - server/api/blog/posts.get.ts → 通过 API 获取文章列表
- *   - pages/blog/[slug].vue       → 列表中的文章链接跳转目标
+ *   - stores/site.ts              → useSiteStore 读取 blog 配置
+ *   - server/api/blog/posts.get.ts → useFetch 调用 GET /api/blog/posts
+ *   - app/pages/blog/[slug].vue   → 列表中的文章链接跳转目标
  */
 
 import { storeToRefs } from "pinia";

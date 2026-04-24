@@ -1,10 +1,12 @@
 /**
- * Nuxt Content 配置文件
+ * Nuxt Content 配置文件 (content.config.ts)
  *
- * 关联文件:
- *   - content/blog/*.md → 博客文章源文件
- *   - server/api/blog/posts.get.ts → 列表 API
- *   - server/api/blog/[slug].get.ts → 详情 API
+ * 耦合关系：
+ *   - @nuxt/content                   → defineContentConfig / defineCollection
+ *   - content/blog/*.md               → blog 集合的数据源
+ *   - server/api/blog/posts.get.ts    → queryCollection 查询 blog 集合
+ *   - server/api/blog/[slug].get.ts   → queryCollection 按 path 查询 blog 集合
+ *   - app/pages/blog/[slug].vue       → ContentRenderer 渲染 blog 文档
  */
 
 import { defineContentConfig, defineCollection } from '@nuxt/content';
@@ -18,7 +20,7 @@ export default defineContentConfig({
       schema: z.object({
         title: z.string(),
         date: z.string(),
-        excerpt: z.string(),
+        description: z.string(),
         readTime: z.string(),
         tags: z.array(z.string()).optional(),
       }),

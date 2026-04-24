@@ -12,7 +12,7 @@
  *   - getTypeIcon(type): 根据灵感类型返回对应图标字符
  */
 
-import type { InspirationItem } from "~/stores/site";
+import type { InspirationItem } from "@stores/site";
 
 defineProps<{
   inspirations: InspirationItem[];

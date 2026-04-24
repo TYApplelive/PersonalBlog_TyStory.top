@@ -2,7 +2,7 @@
  * 首页配置数据
  */
 
-import type { SiteAction, TechCard } from "~/stores/site";
+import type { SiteAction, TechCard } from "@stores/site";
 
 export const homeConfig = {
   seoTitle: "首页",

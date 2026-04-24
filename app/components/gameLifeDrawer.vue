@@ -23,7 +23,7 @@
  */
 
 import { storeToRefs } from "pinia";
-import type { GameEntry } from "~/stores/site";
+import type { GameEntry } from "@stores/site";
 
 // 拖拽状态接口
 interface DragState {

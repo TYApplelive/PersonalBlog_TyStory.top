@@ -3,8 +3,9 @@
  * 博客详情页 (blog/[slug].vue)
  *
  * 耦合关系：
- *   - stores/site.ts                    → 读取 blog 配置
- *   - server/api/blog/[slug].get.ts     → 通过 API 获取单篇文章
+ *   - stores/site.ts                    → useSiteStore 读取 blog 配置
+ *   - server/api/blog/[slug].get.ts     → useFetch 调用 GET /api/blog/:slug
+ *   - @nuxt/content                     → ContentRenderer 渲染 Markdown 正文
  */
 
 import { computed, ref } from "vue";
@@ -24,11 +25,14 @@ const { data: post } = await useFetch<any>(`/api/blog/${slug.value}`, {
 });
 
 const postTitle = computed(() => post.value?.title || blog.value.emptyTitle);
-const postExcerpt = computed(() => post.value?.excerpt || blog.value.articleFallbackDescription);
+const postDescription = computed(() => post.value?.description || blog.value.articleFallbackDescription);
 const postTags = computed(() => post.value?.tags || []);
 const postDate = computed(() => post.value?.date || '');
 
-const introSummary = computed(() => postExcerpt.value);
+console.log("post:", post.value);
+
+
+const introSummary = computed(() => postDescription.value);
 
 // 去掉正文中的 h1 标题（页面已有标题展示）
 const displayBody = computed(() => {
@@ -43,7 +47,7 @@ const displayBody = computed(() => {
 
 useSeoMeta({
   title: () => postTitle.value,
-  description: () => postExcerpt.value,
+  description: () => postDescription.value,
 });
 </script>
 

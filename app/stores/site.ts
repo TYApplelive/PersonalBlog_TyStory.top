@@ -2,8 +2,11 @@
  * 站点状态管理 (site.ts)
  *
  * 耦合关系：
- *   - utils/site-data/* → 导入所有静态配置数据
- *   - 所有页面和组件    → 通过 useSiteStore() 消费
+ *   - utils/site-data/*        → 导入所有静态配置数据（brandConfig, navigationItems 等）
+ *   - app/pages/*.vue          → 所有页面通过 useSiteStore() 消费
+ *   - app/components/*.vue     → 组件通过 useSiteStore() 消费
+ *   - app/pages/blog/index.vue → 读取 blog 配置
+ *   - app/pages/blog/[slug].vue → 读取 blog 配置
  *
  * 导出函数表：
  *   - useSiteStore(): 获取站点状态 Store 实例
@@ -24,7 +27,7 @@
  *   - bringGameToFront(gameId)        → 将游戏卡牌置于顶层
  *   - openGameEnvelope(gameId)        → 打开指定游戏信封
  *   - updateGameCardPosition(id, pos) → 更新卡牌位置
- *   - getBlogPostBySlug(slug)      → 按 slug 查找博客文章
+ *   - getBlogPostBySlug(slug)         → 按 slug 查找博客文章
  *   - loadBlogPosts()                 → 预留：从 API 加载文章
  */
 
@@ -41,7 +44,7 @@ import {
   blogConfig,
   footerConfig,
   techStack,
-} from "~/utils/site-data";
+} from "@utils/site-data";
 
 // 联系方式类型
 export type ContactKey = "github" | "qq" | "wechat";

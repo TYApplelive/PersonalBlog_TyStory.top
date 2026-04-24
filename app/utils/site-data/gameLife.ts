@@ -2,7 +2,7 @@
  * 游戏人生配置数据
  */
 
-import type { GameEntry, ScatterSlot } from "~/stores/site";
+import type { GameEntry, ScatterSlot } from "@stores/site";
 
 export const gameLifeConfig = {
   label: "GameLife",

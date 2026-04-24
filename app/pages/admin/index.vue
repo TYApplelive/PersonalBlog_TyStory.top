@@ -10,7 +10,6 @@ const navItems = [
   { to: '/admin/posts/new', icon: '➕', label: '新建文章', desc: '创建新的 Markdown 博客文章' },
   { to: '/admin/categories', icon: '🏷️', label: '分类管理', desc: '管理博客文章分类信息' },
   { to: '/admin/tags', icon: '🔖', label: '标签管理', desc: '查看和管理文章标签', badge: allTags.value.length },
-  { to: '/admin/md-images', icon: '🖼️', label: 'Markdown 图片处理', desc: '提取本地图片并上传到图床' },
   { to: '/admin/imgbed-manager', icon: '☁️', label: '图床管理', desc: '配置 CloudFlare ImgBed API 与 Token' },
   { to: '/admin/settings', icon: '⚙️', label: '系统设置', desc: '查看和配置博客系统参数' },
   { to: '/admin/users', icon: '👤', label: '用户管理', desc: '管理博客用户和所有者信息' },

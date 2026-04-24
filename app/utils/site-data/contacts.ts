@@ -2,7 +2,7 @@
  * 联系方式配置数据
  */
 
-import type { ContactItem, ContactKey } from "~/stores/site";
+import type { ContactItem, ContactKey } from "@stores/site";
 
 export const contactsData: Record<ContactKey, ContactItem> = {
   github: {

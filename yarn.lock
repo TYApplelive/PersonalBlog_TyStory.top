@@ -5358,6 +5358,11 @@ nuxt-component-meta@0.17.2:
     ufo "^1.6.2"
     vue-component-meta "^3.2.2"
 
+nuxt-notify@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.npmjs.org/nuxt-notify/-/nuxt-notify-1.1.4.tgz#384f03ab4ddbf1e683d4f71a90bb7ff0eb93c24f"
+  integrity sha512-cJTj0fytlxR6Vds185HZJov/DaK65Qj81KNPwyis50xT9dFtlklmEVVMNeWnyNwVrQg4mP0rBpchR4Fl7iK0Fw==
+
 nuxt@^4.2.2:
   version "4.2.2"
   resolved "https://registry.npmmirror.com/nuxt/-/nuxt-4.2.2.tgz#f2579b99ad6d4a7ab8606f5d1131784716673309"

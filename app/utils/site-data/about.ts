@@ -2,7 +2,7 @@
  * 关于页面配置数据
  */
 
-import type { SiteAboutChapter, InspirationItem } from "~/stores/site";
+import type { SiteAboutChapter, InspirationItem } from "@stores/site";
 
 export const aboutConfig = {
   seoTitle: "关于",

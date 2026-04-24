@@ -5,7 +5,7 @@
  * 使用 Nuxt Content 模块管理
  */
 
-import type { BlogOrnament } from "~/stores/site";
+import type { BlogOrnament } from "@stores/site";
 
 export const blogConfig = {
   seoTitle: "博客",

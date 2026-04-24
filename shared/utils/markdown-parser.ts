@@ -3,11 +3,16 @@
  *
  * 两端共用（app + server），放在 shared/ 目录下自动被两端访问。
  *
+ * 耦合关系：
+ *   - server/utils/markdown-image-processor.ts         → 调用 extractImages / getLocalImages / replaceImagePath
+ *   - server/api/admin/upload-and-process.post.ts       → 直接调用 extractImages / getLocalImages / replaceImagePath
+ *   - app/pages/admin/md-images.vue                     → 前端调用 extractImages / getLocalImages
+ *
  * 导出函数表：
- *   - extractImages(content)            → 从 Markdown 内容中提取所有图片信息
- *   - getLocalImages(images)            → 筛选出需要上传的本地图片
+ *   - extractImages(content)              → 从 Markdown 内容中提取所有图片信息
+ *   - getLocalImages(images)              → 筛选出需要上传的本地图片
  *   - replaceImagePath(content, old, new) → 替换 Markdown 中的图片路径
- *   - ExtractedImage (类型)             → 提取的图片数据结构
+ *   - ExtractedImage (类型)               → 提取的图片数据结构
  */
 
 // 图片路径正则表达式
