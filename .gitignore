@@ -5,7 +5,6 @@
 .nitro
 .cache
 .trae
-.lingma
 dist
 
 # Node dependencies
