@@ -1,4 +1,16 @@
 <script setup lang="ts">
+/**
+ * 系统设置页 (admin/settings.vue)
+ *
+ * 耦合关系：
+ *   - server/api/blog/posts.get.ts → 通过 $fetch 获取文章列表（统计用）
+ *   - /package.json                → 通过 $fetch 获取项目依赖信息
+ *   - app/utils/site-data/         → 静态配置数据目录（页面展示配置路径）
+ *
+ * 函数表：
+ *   - tabs     → 设置页标签页列表（基本信息 / 导航配置 / 页脚配置 / 站点缓存）
+ *   - activeTab → 当前激活的标签页索引
+ */
 useHead({ title: '系统设置 - TY\'s Blog' });
 
 const tabs = ['基本信息', '导航配置', '页脚配置', '站点缓存'];

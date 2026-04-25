@@ -1,15 +1,11 @@
-/* 
-Thin 100 极细 
-Light 300 细体 
-Regular 400 标准（正常） 
-Medium 500 中等 
-SemiBold 600 半粗 
-Bold 700 加粗（常用） 
-ExtraBold 800 特粗 
-Black 900 黑体 
+/*
+字体声明 — 全部保留，后续可能使用
+字重参考：
+  Thin 100 | ExtraLight 200 | Light 300 | Regular 400
+  Medium 500 | SemiBold 600 | Bold 700 | ExtraBold 800 | Black 900
 */
 
-/*  TheNautigal Bold*/
+/* ===== TheNautigal ===== */
 @font-face {
     font-family: 'TheNautigal-Bold';
     src: url('https://font.tystory.top/fonts/The%20Nautigal/webfonts/TheNautigal-Bold.woff2') format('woff2'),
@@ -17,9 +13,9 @@ Black 900 黑体
         url('https://font.tystory.top/fonts/The%20Nautigal/ttf/TheNautigal-Bold.ttf') format('truetype');
     font-weight: 700;
     font-style: italic;
+    font-display: swap;
 }
 
-/*  TheNautigal Regular*/
 @font-face {
     font-family: 'TheNautigal';
     src: url('https://font.tystory.top/fonts/The%20Nautigal/webfonts/TheNautigal-Regular.woff2') format('woff2'),
@@ -27,257 +23,252 @@ Black 900 黑体
         url('https://font.tystory.top/fonts/The%20Nautigal/ttf/TheNautigal-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-
-/* Miltonian（墨尔顿字体） */
+/* ===== Miltonian ===== */
 @font-face {
     font-family: 'Miltonian';
     src: url('https://font.tystory.top/fonts/Miltonian/Miltonian-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-/* Bold（加粗字重） */
 @font-face {
     font-family: 'Miltonian-Tattoo';
     src: url('https://font.tystory.top/fonts/Miltonian/Miltonian%20Tattoo-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-/* Playwrite 字体家族 */
-
-/* Playwrite-Thin 极细 */
+/* ===== Playwrite 家族 ===== */
 @font-face {
     font-family: 'Playwrite';
     src: url('https://font.tystory.top/fonts/Playwrite/Playwrite-Thin.ttf') format('truetype');
     font-weight: 100;
     font-style: normal;
+    font-display: swap;
 }
 
-/* Playwrite-ThinItalic 极细斜体 */
 @font-face {
     font-family: 'Playwrite-ThinItalic';
     src: url('https://font.tystory.top/fonts/Playwrite/Playwrite-ThinItalic.ttf') format('truetype');
     font-weight: 100;
     font-style: italic;
+    font-display: swap;
 }
 
-/* Playwrite-ExtraLight 特细 */
 @font-face {
     font-family: 'Playwrite-ExtraLight';
     src: url('https://font.tystory.top/fonts/Playwrite/Playwrite-ExtraLight.ttf') format('truetype');
     font-weight: 200;
     font-style: normal;
+    font-display: swap;
 }
 
-/* Playwrite-ExtraLightItalic 特细斜体 */
 @font-face {
     font-family: 'Playwrite-ExtraLightItalic';
     src: url('https://font.tystory.top/fonts/Playwrite/Playwrite-ExtraLightItalic.ttf') format('truetype');
     font-weight: 200;
     font-style: italic;
+    font-display: swap;
 }
 
-/* Playwrite-Light 细体 */
 @font-face {
     font-family: 'Playwrite-Light';
     src: url('https://font.tystory.top/fonts/Playwrite/Playwrite-Light.ttf') format('truetype');
     font-weight: 300;
     font-style: normal;
+    font-display: swap;
 }
 
-/* Playwrite-LightItalic 细体斜体 */
 @font-face {
     font-family: 'Playwrite-LightItalic';
     src: url('https://font.tystory.top/fonts/Playwrite/Playwrite-LightItalic.ttf') format('truetype');
     font-weight: 300;
     font-style: italic;
+    font-display: swap;
 }
 
-/* Playwrite-Regular 标准 */
 @font-face {
     font-family: 'Playwrite';
     src: url('https://font.tystory.top/fonts/Playwrite/Playwrite-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-/* Playwrite-Italic 标准斜体 */
 @font-face {
     font-family: 'Playwrite-Italic';
     src: url('https://font.tystory.top/fonts/Playwrite/Playwrite-Italic.ttf') format('truetype');
     font-weight: 400;
     font-style: italic;
+    font-display: swap;
 }
 
-/* 特殊英文字体 ， 彩色英文字体*/
-
-/* Buterman 字体家族 ,特殊字体，恐怖字体  */
+/* ===== 特殊英文字体 ===== */
 @font-face {
     font-family: 'Butcherman';
     src: url('https://font.tystory.top/fonts/Butcherman/Butcherman-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-/* Honk 字体家族 彩色字体 黑边 史诗感*/
 @font-face {
     font-family: 'Honk';
     src: url('https://font.tystory.top/fonts/Honk/Honk-Regular-VariableFont_MORF%2CSHLN.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
     font-variation-settings: 'MORF' 26, 'SHLN' 20;
+    font-display: swap;
 }
 
-/* Gilbert 字体家族 彩色字体 加粗 */
-/** 无法显示彩色 不过由于字体本身好看，保留 */
 @font-face {
     font-family: 'Gilbert';
     src: url('https://font.tystory.top/fonts/Gilbert/Gilbert-Color%20Bold-Preview_1004.otf') format('opentype');
     font-weight: 700;
     font-style: normal;
+    font-display: swap;
 }
 
-/* FeelingLucky 字体家族 */
 @font-face {
     font-family: 'FeelingLucky';
     src: url('https://font.tystory.top/fonts/feeling_lucky/FeelingLuckyDemo-Regular.otf') format('opentype');
     font-weight: 700;
     font-style: normal;
+    font-display: swap;
 }
 
-/* Cimero 字 字体家族 */
 @font-face {
     font-family: 'Cimero';
     src: url('https://font.tystory.top/fonts/Cimero%20Pro%20by%20neogrey%20creative/CimeroPro.otf') format('opentype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-/* 中文字体 */
-
-/* PingFangQingChunTi 字体家族 */
+/* ===== 中文字体 ===== */
 @font-face {
     font-family: 'QingChun';
     src: url('https://font.tystory.top/fonts/PingFangQingChunTi/PingFangQingChunTi-2.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-/* DingLieSongKeTi 字体家族 */
 @font-face {
     font-family: 'DingLieSongKe';
     src: url('https://font.tystory.top/fonts/DingLieSongKeTi/dingliesongtypeface20241217-2.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-/* QingKongMingChao 字体家族 */
 @font-face {
     font-family: 'QingKongMingChao';
     src: url('https://font.tystory.top/fonts/QingKongMingChao/AozoraMinchoMedium-2.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-/* NotoSansSC 字体家族 */
-
-/* NotoSansSC-Thin 极细 */
+/* ===== NotoSansSC 家族 ===== */
 @font-face {
     font-family: 'NotoSansSC-Thin';
     src: url('https://font.tystory.top/fonts/NotoSans/NotoSansSC-Thin.ttf') format('truetype');
     font-weight: 100;
     font-style: normal;
+    font-display: swap;
 }
 
-/* NotoSansSC-ExtraLight 特细 */
 @font-face {
     font-family: 'NotoSansSC-ExtraLight';
     src: url('https://font.tystory.top/fonts/NotoSans/NotoSansSC-ExtraLight.ttf') format('truetype');
     font-weight: 200;
     font-style: normal;
+    font-display: swap;
 }
 
-/* NotoSansSC-Light 细体 */
 @font-face {
     font-family: 'NotoSansSC-Light';
     src: url('https://font.tystory.top/fonts/NotoSans/NotoSansSC-Light.ttf') format('truetype');
     font-weight: 300;
     font-style: normal;
+    font-display: swap;
 }
 
-/* NotoSansSC-Regular 标准 */
 @font-face {
     font-family: 'NotoSansSC';
     src: url('https://font.tystory.top/fonts/NotoSans/NotoSansSC-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-/* NotoSansSC-Medium 中等 */
 @font-face {
     font-family: 'NotoSansSC-Medium';
     src: url('https://font.tystory.top/fonts/NotoSans/NotoSansSC-Medium.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
+    font-display: swap;
 }
 
-/* NotoSansSC-SemiBold 半粗 */
 @font-face {
     font-family: 'NotoSansSC-SemiBold';
     src: url('https://font.tystory.top/fonts/NotoSans/NotoSansSC-SemiBold.ttf') format('truetype');
     font-weight: 600;
     font-style: normal;
+    font-display: swap;
 }
 
-/* NotoSansSC-Bold 加粗 */
 @font-face {
     font-family: 'NotoSansSC-Bold';
     src: url('https://font.tystory.top/fonts/NotoSans/NotoSansSC-Bold.ttf') format('truetype');
     font-weight: 700;
     font-style: normal;
+    font-display: swap;
 }
 
-/* NotoSansSC-ExtraBold 特粗 */
 @font-face {
     font-family: 'NotoSansSC-ExtraBold';
     src: url('https://font.tystory.top/fonts/NotoSans/NotoSansSC-ExtraBold.ttf') format('truetype');
     font-weight: 800;
     font-style: normal;
+    font-display: swap;
 }
 
-/* NotoSansSC-Black 黑体 */
 @font-face {
     font-family: 'NotoSansSC-Black';
     src: url('https://font.tystory.top/fonts/NotoSans/NotoSansSC-Black.ttf') format('truetype');
     font-weight: 900;
     font-style: normal;
+    font-display: swap;
 }
 
-/* 图像字体 */
-
-/* Happy-Day-Dingbats 字体家族 */
+/* ===== 图像字体 ===== */
 @font-face {
     font-family: 'HappyDayDingbats';
     src: url('https://font.tystory.top/fonts/Happy-Day-Dingbats/Corradine-Fonts-HappyDayDingbats-2.otf') format('opentype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-/* IM-FELL-FLOWERS-2 字体家族 */
 @font-face {
     font-family: 'IM-FELL-FLOWERS-2';
     src: url('https://font.tystory.top/fonts/IM-FELL-FLOWERS-2/FeFlow2-2.otf') format('opentype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-/* Sugar-Coma 字体家族 */
 @font-face {
     font-family: 'Sugar-Coma';
     src: url('https://font.tystory.top/fonts/Sugar-Coma/SUGAC-1.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }

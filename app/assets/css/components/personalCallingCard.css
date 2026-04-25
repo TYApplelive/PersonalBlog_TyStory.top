@@ -1,0 +1,317 @@
+/* 个人电子名片组件样式：使命召唤电子名片 + 中世纪猎魔人质感 */
+
+.home-left-stack {
+  display: grid;
+  gap: 1.5rem;
+  align-content: start;
+}
+
+.personal-card {
+  position: relative;
+  isolation: isolate;
+  min-height: clamp(14rem, 22vw, 17.5rem);
+  border: 1px solid rgba(214, 188, 132, 0.32);
+  border-radius: 18px;
+  overflow: hidden;
+  color: var(--film-paper);
+  background:
+    radial-gradient(circle at 18% 20%, rgba(139, 34, 28, 0.52), transparent 28%),
+    linear-gradient(135deg, rgba(15, 16, 15, 0.98) 0%, rgba(33, 28, 24, 0.96) 54%, rgba(87, 24, 20, 0.94) 100%);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(255, 244, 222, 0.06);
+  outline: none;
+}
+
+.personal-card::before,
+.personal-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.personal-card::before {
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(255, 244, 222, 0.08), transparent 18%, transparent 82%, rgba(183, 140, 77, 0.12)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0, rgba(255, 255, 255, 0.06) 1px, transparent 1px, transparent 5px);
+  mix-blend-mode: screen;
+  opacity: 0.42;
+}
+
+.personal-card::after {
+  border: 1px solid rgba(214, 188, 132, 0.22);
+  inset: 0.65rem;
+  border-radius: 13px;
+}
+
+.personal-card-scan {
+  position: absolute;
+  z-index: 1;
+  top: -35%;
+  left: -18%;
+  width: 26%;
+  height: 170%;
+  background: linear-gradient(90deg, transparent, rgba(255, 233, 180, 0.22), transparent);
+  filter: blur(1px);
+  transform: rotate(16deg);
+  animation: personal-card-scan 5.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.personal-card-corner {
+  position: absolute;
+  z-index: 2;
+  width: 5.2rem;
+  height: 5.2rem;
+  border-color: rgba(214, 188, 132, 0.42);
+  pointer-events: none;
+}
+
+.personal-card-corner-top {
+  top: 1rem;
+  left: 1rem;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+
+.personal-card-corner-bottom {
+  right: 1rem;
+  bottom: 1rem;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+}
+
+.personal-card-front,
+.personal-card-reveal {
+  position: absolute;
+  inset: 0;
+  display: grid;
+}
+
+.personal-card-front {
+  z-index: 2;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: center;
+  padding: clamp(1.25rem, 2.5vw, 1.8rem);
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease,
+    filter 0.28s ease;
+}
+
+.personal-card-sigil {
+  display: grid;
+  place-items: center;
+  width: clamp(4.8rem, 12vw, 6.4rem);
+  aspect-ratio: 1;
+  border: 1px solid rgba(214, 188, 132, 0.36);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(123, 30, 30, 0.88) 0 34%, transparent 35%),
+    conic-gradient(from 45deg, rgba(214, 188, 132, 0.72), rgba(35, 26, 22, 0.82), rgba(214, 188, 132, 0.72));
+  box-shadow:
+    0 0 34px rgba(123, 30, 30, 0.28),
+    inset 0 0 0 0.55rem rgba(10, 10, 10, 0.64);
+}
+
+.personal-card-sigil span {
+  font-family: "Miltonian-Tattoo", "Cimero", "QingKongMingChao", serif;
+  font-size: clamp(1.45rem, 4vw, 2.2rem);
+  letter-spacing: 0.08em;
+  color: #f6deb0;
+  text-shadow: 0 0 14px rgba(246, 222, 176, 0.28);
+}
+
+.personal-card-copy {
+  min-width: 0;
+}
+
+.personal-card-kicker,
+.personal-card-code,
+.personal-card-reveal-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--film-gold-soft);
+}
+
+.personal-card-title {
+  margin-top: 0.45rem;
+  font-family: "Miltonian-Tattoo", "Cimero", "QingKongMingChao", serif;
+  font-size: clamp(1.9rem, 5vw, 3rem);
+  line-height: 1;
+  color: #fff1c8;
+}
+
+.personal-card-callsign {
+  margin-top: 0.55rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(242, 221, 175, 0.78);
+}
+
+.personal-card-code {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: end;
+  align-self: end;
+  color: rgba(242, 221, 175, 0.52);
+}
+
+.personal-card-reveal {
+  z-index: 3;
+  align-content: center;
+  gap: 1rem;
+  padding: clamp(1.15rem, 2.4vw, 1.65rem);
+  background:
+    linear-gradient(90deg, rgba(12, 12, 12, 0.94) 0%, rgba(32, 20, 18, 0.92) 48%, rgba(96, 26, 21, 0.9) 100%),
+    radial-gradient(circle at 90% 10%, rgba(214, 188, 132, 0.22), transparent 24%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px) scale(0.985);
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
+}
+
+.personal-card-reveal-text {
+  max-width: 38rem;
+  margin-top: 0.45rem;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: rgba(242, 221, 175, 0.84);
+}
+
+.personal-card-tags,
+.personal-card-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.personal-card-tag {
+  border: 1px solid rgba(214, 188, 132, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 244, 222, 0.06);
+  padding: 0.35rem 0.7rem;
+  font-size: 0.76rem;
+  color: #f4dfb8;
+}
+
+.personal-card-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  border: 1px solid rgba(214, 188, 132, 0.26);
+  border-radius: 12px;
+  background: rgba(255, 244, 222, 0.07);
+  padding: 0.45rem 0.65rem;
+  color: #f5dfb6;
+}
+
+.personal-card-contact:hover,
+.personal-card-contact:focus-visible {
+  border-color: rgba(214, 188, 132, 0.52);
+  background: rgba(255, 244, 222, 0.12);
+  transform: translateY(-1px);
+}
+
+.personal-card-contact-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 1.6rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(123, 30, 30, 0.62);
+  color: #ffe7b7;
+  font-size: 0.76rem;
+}
+
+.personal-card-contact strong,
+.personal-card-contact em {
+  display: block;
+  font-style: normal;
+  line-height: 1.25;
+}
+
+.personal-card-contact strong {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.personal-card-contact em {
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  color: rgba(242, 221, 175, 0.72);
+}
+
+.personal-card:hover .personal-card-front,
+.personal-card:focus-within .personal-card-front {
+  opacity: 0.16;
+  transform: translateY(-8px) scale(1.02);
+  filter: blur(2px);
+}
+
+.personal-card:hover .personal-card-reveal,
+.personal-card:focus-within .personal-card-reveal {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.personal-card:focus-visible {
+  border-color: rgba(214, 188, 132, 0.72);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.3),
+    0 0 0 3px rgba(214, 188, 132, 0.16),
+    inset 0 0 0 1px rgba(255, 244, 222, 0.08);
+}
+
+@keyframes personal-card-scan {
+  0%,
+  32% {
+    transform: translateX(0) rotate(16deg);
+    opacity: 0;
+  }
+
+  48% {
+    opacity: 1;
+  }
+
+  72%,
+  100% {
+    transform: translateX(560%) rotate(16deg);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .personal-card {
+    min-height: 19rem;
+  }
+
+  .personal-card-front {
+    grid-template-columns: 1fr;
+    align-content: center;
+  }
+
+  .personal-card-code {
+    justify-items: start;
+    align-self: start;
+  }
+
+  .personal-card-reveal {
+    align-content: start;
+    overflow-y: auto;
+  }
+}

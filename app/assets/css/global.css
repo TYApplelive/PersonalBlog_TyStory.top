@@ -4,6 +4,7 @@
 @import "./components/gameLifeDrawer.css";
 @import "./components/contactIcons.css";
 @import "./components/techReelSection.css";
+@import "./components/personalCallingCard.css";
 
 /* 站点主配色，统一复古胶片视觉。 */
 :root {
@@ -28,6 +29,37 @@
 
 html {
   background: var(--film-bg);
+  /* 默认隐藏滚动条，文章页通过 .show-scrollbar 恢复 */
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+/* 文章详情页恢复复古风格滚动条 */
+html.show-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--film-gold) var(--film-bg-soft);
+}
+
+html.show-scrollbar::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+}
+
+html.show-scrollbar::-webkit-scrollbar-track {
+  background: var(--film-bg-soft);
+  border-radius: 4px;
+}
+
+html.show-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--film-gold);
+  border-radius: 4px;
+}
+
+html.show-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--film-gold-soft);
 }
 
 body {
@@ -118,6 +150,10 @@ svg {
   border: 1px solid rgba(214, 188, 132, 0.18);
   border-radius: 22px;
   pointer-events: none;
+}
+
+.nav-film-frame {
+  overflow: visible;
 }
 
 .film-label {
@@ -287,6 +323,7 @@ svg {
   background: rgba(255, 244, 222, 0.06);
   color: var(--film-paper);
 }
+
 
 .contact-chip {
   display: inline-flex;

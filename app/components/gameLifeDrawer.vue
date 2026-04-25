@@ -4,6 +4,7 @@
  *
  * 耦合关系：
  *   - stores/site.ts → 读取 gameLife / isGameDrawerOpen / getActiveGame / getGameOrderedList
+ *   - shared/utils/math.ts      → 导入 clamp / toPercent
  *
  * 应用方式：
  *   <gameLifeDrawer />
@@ -23,7 +24,8 @@
  */
 
 import { storeToRefs } from "pinia";
-import type { GameEntry } from "@stores/site";
+import type { GameEntry } from "#shared/types/site";
+import { clamp, toPercent } from "#shared/utils/math";
 
 // 拖拽状态接口
 interface DragState {
@@ -65,16 +67,6 @@ const cardStyle = (game: GameEntry) => ({
   zIndex: game.zIndex,
   "--card-angle": game.angle,
 }) as Record<string, string | number>;
-
-// 数值钳制：限制 value 在 [min, max] 范围内
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
-
-// 像素值转百分比
-function toPercent(value: number, total: number) {
-  return total <= 0 ? 0 : (value / total) * 100;
-}
 
 // 获取舞台容器的尺寸信息
 function getStageMetrics() {
@@ -124,9 +116,7 @@ function generateCards() {
     const slot = slots[index];
     if (!slot) return;
 
-    updateGameCardPosition(game.id, { x: slot.x, y: slot.y });
-    game.angle = slot.angle;
-    game.zIndex = slot.zIndex;
+    updateGameCardPosition(game.id, { x: slot.x, y: slot.y, angle: slot.angle, zIndex: slot.zIndex });
   });
 
   hasGeneratedCards.value = true;

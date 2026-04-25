@@ -1,4 +1,21 @@
 <script setup lang="ts">
+/**
+ * 管理中心首页 (admin/index.vue)
+ *
+ * 耦合关系：
+ *   - server/api/blog/posts.get.ts → 通过 $fetch 获取文章列表
+ *   - app/pages/admin/posts.vue    → 导航跳转目标
+ *   - app/pages/admin/tags.vue     → 导航跳转目标
+ *   - app/pages/admin/categories.vue → 导航跳转目标
+ *   - app/pages/admin/imgbed-manager.vue → 导航跳转目标
+ *   - app/pages/admin/settings.vue → 导航跳转目标
+ *   - app/pages/admin/users.vue    → 导航跳转目标
+ *
+ * 函数表：
+ *   - allTags       → computed，从文章列表提取去重标签集合
+ *   - allCategories → computed，从文章标题首字提取分类集合
+ *   - navItems      → 管理后台导航项配置（含动态 badge）
+ */
 useHead({ title: '管理中心 - TY\'s Blog' });
 
 const { data: posts } = await useAsyncData('admin-posts', () => $fetch('/api/blog/posts'), { default: () => [] });

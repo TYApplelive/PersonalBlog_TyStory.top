@@ -1,20 +1,14 @@
 /**
  * 保存文章 API (server/api/admin/save-post.post.ts)
  *
- * 耦合关系：
- *   - app/pages/admin/posts/new.vue → 手动填写模式「保存到博客」按钮调用
- *   - content/blog/*.md             → 写入目标文件
- *
- * 请求方式：POST /api/admin/save-post
- * 请求体：{ filename: string, content: string }
- * 返回：{ success: boolean, path: string }
+ * 用途：用户在页面手动输入文章内容 + 文件名，点击"保存"按钮后调用。
+ * 请求：POST /api/admin/save-post  { filename, content }
+ * 返回：{ success, path }
  */
 
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-
-// 文件名合法性校验：只允许字母、数字、短横线、下划线
-const SAFE_FILENAME = /^[a-zA-Z0-9_-]+$/;
+import { validateFilename } from '@serverUtils/filename-validator';
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<{ filename: string; content: string }>(event);
@@ -23,18 +17,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: '缺少 filename 或 content' });
   }
 
-  // 去掉可能的 .md 扩展名后再校验
-  const baseName = body.filename.replace(/\.md$/i, '');
+  // 校验文件名合法性
+  const baseName = validateFilename(body.filename);
 
-  if (!SAFE_FILENAME.test(baseName)) {
-    throw createError({
-      statusCode: 400,
-      message: '文件名只能包含字母、数字、短横线和下划线',
-    });
-  }
-
+  // 写入 content/blog/
   const filePath = join(process.cwd(), 'content', 'blog', `${baseName}.md`);
-
   try {
     await writeFile(filePath, body.content, 'utf-8');
   } catch (err: any) {

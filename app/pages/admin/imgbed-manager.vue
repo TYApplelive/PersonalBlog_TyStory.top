@@ -1,4 +1,24 @@
 <script setup lang="ts">
+/**
+ * 图床管理页 (admin/imgbed-manager.vue)
+ *
+ * 耦合关系：
+ *   - shared/utils/imgbed-config.ts → 导入 ImgBedConfig 类型及所有配置操作函数
+ *     - getImgBedConfig()    → 加载服务端图床配置
+ *     - saveImgBedConfig()   → 保存图床配置到服务端
+ *     - resetImgBedConfig()  → 重置图床配置为默认值
+ *     - buildImgBedUrl()     → 拼接图床 API 请求 URL
+ *     - buildImgBedAuthHeaders() → 构建 Token 认证请求头
+ *     - normalizeImgBedBaseUrl() → 规范化 API 基础 URL
+ *
+ * 函数表：
+ *   - validateApiUrl()     → 校验 API URL 格式
+ *   - testRandomImage()    → 测试随机图片接口连通性
+ *   - testManageToken()    → 测试 Token 对管理接口的鉴权有效性
+ *   - saveConfig()         → 保存当前配置到服务端
+ *   - resetConfig()        → 重置配置并刷新页面数据
+ *   - showTemporaryMessage() → 显示 3 秒临时提示消息
+ */
 import type { ImgBedConfig } from "#shared/utils/imgbed-config";
 import {
   buildImgBedAuthHeaders,

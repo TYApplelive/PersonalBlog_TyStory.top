@@ -1,11 +1,18 @@
 <script setup lang="ts">
 /**
- * Single-save upload flow:
- * load markdown -> process image refs -> save markdown.
+ * 新建文章页面：上传 Markdown → 处理本地图片 → 保存
  */
 import type { ImgBedConfig } from "#shared/utils/imgbed-config";
 import { getImgBedConfig } from "#shared/utils/imgbed-config";
 import { extractImages, getLocalImages } from "#shared/utils/markdown-parser";
+import {
+  buildMarkdownWithFrontmatter,
+  formatTagsInput,
+  parseMarkdownForEditor,
+  parseTagsInput,
+  validateRequiredFrontmatter,
+  type BlogFrontmatterForm,
+} from "#shared/utils/post-frontmatter";
 
 useHead({ title: "New Post - TY's Blog" });
 
@@ -26,12 +33,27 @@ interface SaveResponse {
   path: string;
 }
 
+interface UploadedImage {
+  originalPath: string;
+  remoteUrl: string;
+  altText: string;
+}
+
 const toast = useToast();
 
 const selectedFile = ref<File | null>(null);
 const draftContent = ref("");
 const processedContent = ref("");
+const markdownBody = ref("");
 const customFilename = ref("");
+const frontmatterForm = ref<BlogFrontmatterForm>({
+  title: "",
+  date: "",
+  description: "",
+  readTime: "",
+  tags: [],
+});
+const tagsInput = ref("");
 const isDragging = ref(false);
 const isSaving = ref(false);
 const progress = ref(0);
@@ -41,6 +63,9 @@ const statusText = ref("");
 const savePath = ref("");
 const errors = ref<Array<{ path: string; error: string }>>([]);
 const currentConfig = ref<ImgBedConfig>({ apiUrl: "", token: "" });
+const uploadedImages = ref<UploadedImage[]>([]);
+const previewImage = ref<string | null>(null);
+const previewPosition = ref({ x: 0, y: 0 });
 let progressTimer: ReturnType<typeof setInterval> | null = null;
 
 const { data: loadedConfig } = await useAsyncData("imgbed-config-post-create", () => getImgBedConfig());
@@ -53,10 +78,17 @@ watch(
   { immediate: true },
 );
 
-const extractedImages = computed(() => extractImages(draftContent.value));
+const rebuiltMarkdown = computed(() => {
+  if (!draftContent.value) return "";
+  return buildMarkdownWithFrontmatter(
+    { ...frontmatterForm.value, tags: parseTagsInput(tagsInput.value) },
+    markdownBody.value,
+  );
+});
+const extractedImages = computed(() => extractImages(rebuiltMarkdown.value));
 const localImages = computed(() => getLocalImages(extractedImages.value));
 const remoteImages = computed(() => extractedImages.value.filter((item) => item.pathType === "remote"));
-const outputContent = computed(() => processedContent.value || draftContent.value);
+const outputContent = computed(() => processedContent.value || rebuiltMarkdown.value);
 const resolvedFilename = computed(() => {
   if (customFilename.value.trim()) return customFilename.value.trim();
   return selectedFile.value?.name.replace(/\.(md|markdown)$/i, "") || "";
@@ -72,6 +104,7 @@ function resetResultState() {
   processedImages.value = 0;
   totalProcessImages.value = 0;
   statusText.value = "";
+  uploadedImages.value = [];
 }
 
 function stopProgressTimer() {
@@ -107,6 +140,10 @@ function loadMarkdownFile(file: File) {
   const reader = new FileReader();
   reader.onload = () => {
     draftContent.value = String(reader.result ?? "");
+    const parsed = parseMarkdownForEditor(draftContent.value);
+    frontmatterForm.value = parsed.frontmatter;
+    tagsInput.value = formatTagsInput(parsed.frontmatter.tags);
+    markdownBody.value = parsed.body;
     resetResultState();
   };
   reader.readAsText(file, "utf-8");
@@ -134,13 +171,61 @@ function onFileSelect(event: Event) {
   if (file) loadMarkdownFile(file);
 }
 
+function extractUploadedImages(original: string, processed: string): UploadedImage[] {
+  const originalLocal = getLocalImages(extractImages(original));
+  const processedRemote = extractImages(processed).filter((img) => img.pathType === "remote");
+
+  const uploaded: UploadedImage[] = [];
+  for (const localImg of originalLocal) {
+    const remoteImg = processedRemote.find((r) => r.altText === localImg.altText);
+    if (remoteImg && !uploaded.some((u) => u.originalPath === localImg.path)) {
+      uploaded.push({
+        originalPath: localImg.path,
+        remoteUrl: remoteImg.path,
+        altText: localImg.altText || "",
+      });
+    }
+  }
+  return uploaded;
+}
+
+function showImagePreview(url: string, event: MouseEvent) {
+  previewImage.value = url;
+  updatePreviewPosition(event);
+}
+
+function hideImagePreview() {
+  previewImage.value = null;
+}
+
+function updatePreviewPosition(event: MouseEvent) {
+  const x = event.clientX + 15;
+  const y = event.clientY + 15;
+  const maxX = window.innerWidth - 320;
+  const maxY = window.innerHeight - 220;
+  previewPosition.value = {
+    x: Math.min(x, maxX),
+    y: Math.min(y, maxY),
+  };
+}
+
 async function savePost() {
   if (!canSave.value) return;
+
+  const requiredErrors = validateRequiredFrontmatter({
+    ...frontmatterForm.value,
+    tags: parseTagsInput(tagsInput.value),
+  });
+  if (requiredErrors.length) {
+    toast.error("Missing frontmatter", `Required: ${requiredErrors.join(", ")}`);
+    return;
+  }
 
   isSaving.value = true;
   errors.value = [];
   processedContent.value = "";
   savePath.value = "";
+  uploadedImages.value = [];
   totalProcessImages.value = localImages.value.length;
   processedImages.value = 0;
   progress.value = totalProcessImages.value ? 10 : 30;
@@ -153,25 +238,37 @@ async function savePost() {
   }
 
   try {
-    const processResult = await $fetch<ProcessResponse>("/api/process-markdown", {
-      method: "POST",
-      body: {
-        content: draftContent.value,
-      },
-    });
+    let finalContent = rebuiltMarkdown.value;
 
-    stopProgressTimer();
-    processedContent.value = processResult.processedContent;
-    errors.value = processResult.errors || [];
-    processedImages.value = processResult.processedCount;
-    progress.value = 85;
-    statusText.value = `Image process finished (${processResult.processedCount}/${processResult.localImages}). Writing markdown...`;
+    if (totalProcessImages.value > 0) {
+      const processResult = await $fetch<ProcessResponse>("/api/process-markdown", {
+        method: "POST",
+        body: {
+          content: rebuiltMarkdown.value,
+        },
+      });
+
+      stopProgressTimer();
+      finalContent = processResult.processedContent;
+      processedContent.value = processResult.processedContent;
+      errors.value = processResult.errors || [];
+      processedImages.value = processResult.processedCount;
+      progress.value = 85;
+      statusText.value = `Image process finished (${processResult.uploadedCount}/${processResult.localImages}). Writing markdown...`;
+
+      // 提取上传成功的图片
+      uploadedImages.value = extractUploadedImages(rebuiltMarkdown.value, processResult.processedContent);
+    } else {
+      processedContent.value = finalContent;
+      progress.value = 85;
+      statusText.value = "No local image found. Writing markdown...";
+    }
 
     const saveResult = await $fetch<SaveResponse>("/api/admin/save-post", {
       method: "POST",
       body: {
         filename: resolvedFilename.value,
-        content: processResult.processedContent,
+        content: finalContent,
       },
     });
 
@@ -187,7 +284,6 @@ async function savePost() {
     isSaving.value = false;
   }
 }
-
 </script>
 
 <template>
@@ -224,7 +320,31 @@ async function savePost() {
           <div class="form-group">
             <label>Target filename</label>
             <input v-model="customFilename" type="text" class="form-input">
-            <p class="form-hint">Only letters, numbers, dash and underscore are allowed.</p>
+            <p class="form-hint">Letters, numbers, spaces, dash and underscore are allowed.</p>
+          </div>
+
+          <div class="post-create-config">
+            <p><strong>Frontmatter</strong></p>
+            <label class="form-group compact-form-group">
+              <span>Title *</span>
+              <input v-model="frontmatterForm.title" type="text" class="form-input">
+            </label>
+            <label class="form-group compact-form-group">
+              <span>Date *</span>
+              <input v-model="frontmatterForm.date" type="text" placeholder="YYYY-MM-DD" class="form-input">
+            </label>
+            <label class="form-group compact-form-group">
+              <span>Description *</span>
+              <textarea v-model="frontmatterForm.description" rows="3" class="form-input"></textarea>
+            </label>
+            <label class="form-group compact-form-group">
+              <span>Read Time *</span>
+              <input v-model="frontmatterForm.readTime" type="text" class="form-input">
+            </label>
+            <label class="form-group compact-form-group">
+              <span>Tags</span>
+              <input v-model="tagsInput" type="text" placeholder="Nuxt, Vue" class="form-input">
+            </label>
           </div>
 
           <div class="post-create-config">
@@ -260,8 +380,8 @@ async function savePost() {
           <span>Remote Images</span>
         </article>
         <article class="admin-panel post-stat-card">
-          <strong>{{ resolvedFilename || "-" }}</strong>
-          <span>Filename</span>
+          <strong>{{ uploadedImages.length }}</strong>
+          <span>Uploaded</span>
         </article>
       </section>
 
@@ -290,6 +410,25 @@ async function savePost() {
           </div>
 
           <template v-else>
+            <!-- 上传成功的图片 -->
+            <div v-if="uploadedImages.length" class="post-image-block uploaded">
+              <h3>✅ Uploaded images ({{ uploadedImages.length }})</h3>
+              <div class="post-image-list">
+                <div
+                  v-for="item in uploadedImages"
+                  :key="item.remoteUrl"
+                  class="post-image-item uploaded-item"
+                  @mouseenter="showImagePreview(item.remoteUrl, $event)"
+                  @mousemove="updatePreviewPosition"
+                  @mouseleave="hideImagePreview"
+                >
+                  <strong>{{ item.altText || "No alt" }}</strong>
+                  <code>{{ item.remoteUrl }}</code>
+                  <span class="upload-badge">Uploaded</span>
+                </div>
+              </div>
+            </div>
+
             <div class="post-image-block">
               <h3>Local images to upload</h3>
               <div v-if="localImages.length" class="post-image-list">
@@ -304,7 +443,14 @@ async function savePost() {
             <div class="post-image-block">
               <h3>Remote images</h3>
               <div v-if="remoteImages.length" class="post-image-list">
-                <div v-for="item in remoteImages" :key="item.fullMatch" class="post-image-item remote">
+                <div
+                  v-for="item in remoteImages"
+                  :key="item.fullMatch"
+                  class="post-image-item remote"
+                  @mouseenter="showImagePreview(item.path, $event)"
+                  @mousemove="updatePreviewPosition"
+                  @mouseleave="hideImagePreview"
+                >
                   <strong>{{ item.altText || "No alt" }}</strong>
                   <code>{{ item.path }}</code>
                 </div>
@@ -339,6 +485,19 @@ async function savePost() {
         </article>
       </section>
     </main>
+
+    <!-- 图片预览浮层 -->
+    <Teleport to="body">
+      <Transition name="preview-fade">
+        <div
+          v-if="previewImage"
+          class="image-preview-popup"
+          :style="{ left: `${previewPosition.x}px`, top: `${previewPosition.y}px` }"
+        >
+          <img :src="previewImage" alt="Preview" @error="hideImagePreview">
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -442,6 +601,10 @@ code {
   margin: 0;
 }
 
+.compact-form-group {
+  margin-bottom: 0;
+}
+
 .post-create-actions {
   display: flex;
   flex-wrap: wrap;
@@ -523,6 +686,10 @@ code {
   font-size: 1rem;
 }
 
+.post-image-block.uploaded h3 {
+  color: #6ec98f;
+}
+
 .post-image-list {
   display: grid;
   gap: 0.6rem;
@@ -543,6 +710,35 @@ code {
 
 .post-image-item.remote {
   border-left: 3px solid var(--film-gold);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.post-image-item.remote:hover {
+  background: rgba(20, 12, 9, 0.5);
+}
+
+.post-image-item.uploaded-item {
+  border-left: 3px solid #6ec98f;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.post-image-item.uploaded-item:hover {
+  background: rgba(110, 201, 143, 0.1);
+  transform: translateX(4px);
+}
+
+.upload-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(110, 201, 143, 0.2);
+  color: #6ec98f;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .post-image-item strong,
@@ -583,6 +779,36 @@ code {
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* 图片预览浮层 */
+.image-preview-popup {
+  position: fixed;
+  z-index: 9999;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--film-dark);
+  border: 2px solid var(--film-gold);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.image-preview-popup img {
+  display: block;
+  max-width: 300px;
+  max-height: 200px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.preview-fade-enter-active,
+.preview-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.preview-fade-enter-from,
+.preview-fade-leave-to {
+  opacity: 0;
 }
 
 @media (max-width: 980px) {

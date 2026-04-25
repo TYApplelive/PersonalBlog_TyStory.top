@@ -1,5 +1,37 @@
 <script setup lang="ts">
-useHead({ title: '用户管理 - TY\'s Blog' });
+/**
+ * 用户管理页 (admin/users.vue)
+ *
+ * 耦合关系：
+ *   - server/api/admin/users.get.ts → 通过 useFetch 获取用户列表
+ *   - 环境变量 AUTH_SEED_ADMIN_USERNAME → 首次初始化管理员账号
+ *
+ * 函数表：
+ *   - AdminUser  → 管理后台用户类型定义
+ *   - formatTime() → 格式化 ISO 时间为本地可读字符串
+ */
+interface AdminUser {
+  id: string;
+  username: string;
+  displayName: string;
+  role: "admin" | "user";
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt: string;
+}
+
+useHead({ title: "用户管理 - TY's Blog" });
+
+const { data: users, pending, error } = await useFetch<AdminUser[]>("/api/admin/users", {
+  default: () => [],
+});
+
+function formatTime(value: string) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("zh-CN", { hour12: false });
+}
 </script>
 
 <template>
@@ -7,27 +39,46 @@ useHead({ title: '用户管理 - TY\'s Blog' });
     <header class="admin-header">
       <p class="eyebrow">ACCOUNT</p>
       <h1>用户管理</h1>
-      <p class="admin-subtitle">当前博客为静态站点，暂无完整的用户系统。此处展示站点所有者信息。</p>
+      <p class="admin-subtitle">展示系统用户与权限信息。默认管理员可通过 AUTH_SEED_ADMIN_USERNAME 初始化。</p>
     </header>
 
     <main class="admin-main">
       <div class="admin-panel">
-        <div class="profile-card">
-          <div class="profile-avatar">TY</div>
-          <div class="profile-info">
-            <h2 class="profile-name">TY <span style="color:var(--film-muted-light);font-weight:400;font-size:0.9rem;">/ Applelive</span></h2>
-            <p class="profile-desc">学生 · 写程序的人 · 白羊座</p>
-            <div class="profile-contacts">
-              <div class="contact-row">
-                <span class="contact-label">GitHub</span>
-                <a href="https://github.com/TYApplelive" target="_blank" class="admin-link">TYApplelive</a>
-              </div>
-              <div class="contact-row">
-                <span class="contact-label">QQ</span>
-                <span style="color:var(--film-paper-soft);">2623999208</span>
-              </div>
-            </div>
-          </div>
+        <h2>用户列表</h2>
+        <p v-if="pending" class="hint-text">加载中...</p>
+        <p v-else-if="error" class="hint-text">加载失败：{{ error.message }}</p>
+        <div v-else-if="users.length === 0" class="hint-text">
+          暂无用户记录，请先登录或配置初始化管理员账号。
+        </div>
+        <div v-else class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>用户</th>
+                <th>角色</th>
+                <th>账号</th>
+                <th>最近登录</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in users" :key="item.id">
+                <td class="user-cell">
+                  <div class="user-avatar">{{ item.displayName.slice(0, 1).toUpperCase() }}</div>
+                  <div>
+                    <strong>{{ item.displayName }}</strong>
+                    <small>#{{ item.id }}</small>
+                  </div>
+                </td>
+                <td>
+                  <span class="tag-badge" :class="{ 'tag-admin': item.role === 'admin' }">
+                    {{ item.role }}
+                  </span>
+                </td>
+                <td>@{{ item.username }}</td>
+                <td>{{ formatTime(item.lastLoginAt) }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -61,67 +112,44 @@ useHead({ title: '用户管理 - TY\'s Blog' });
 </template>
 
 <style scoped>
-.profile-card {
-  display: flex;
-  gap: 1.5rem;
-  align-items: flex-start;
+.hint-text {
+  color: var(--film-paper-soft);
 }
 
-.profile-avatar {
-  width: 5rem;
-  height: 5rem;
+.table-wrap {
+  overflow-x: auto;
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-cell small {
+  display: block;
+  color: var(--film-paper-soft);
+}
+
+.user-avatar {
+  width: 2rem;
+  height: 2rem;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--film-accent), var(--film-gold));
   display: grid;
   place-items: center;
-  font-size: 1.5rem;
-  font-weight: 900;
+  background: rgba(183, 140, 77, 0.3);
   color: var(--film-paper);
-  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
-.profile-info {
-  flex: 1;
-}
-
-.profile-name {
-  margin: 0 0 0.25rem;
-  color: var(--film-gold);
-  font-size: 1.5rem;
-}
-
-.profile-desc {
-  color: var(--film-muted-light);
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
-}
-
-.profile-contacts {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.contact-row {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.contact-label {
-  color: var(--film-muted-light);
-  font-weight: 600;
-  min-width: 4rem;
+.tag-admin {
+  background: rgba(183, 140, 77, 0.35);
 }
 
 @media (max-width: 600px) {
-  .profile-card {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .contact-row {
-    justify-content: center;
+  .user-cell {
+    min-width: 10rem;
   }
 }
 </style>

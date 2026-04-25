@@ -4,11 +4,7 @@
  *
  * 耦合关系：
  *   - 无外部依赖，仅配置全局 HTML 属性和图标
- *
- * 函数表：
- *   无自定义函数
  */
-
 useHead({
   htmlAttrs: { lang: "zh-CN" },
   link: [{ rel: "icon", type: "image/png", href: "/icon.png" }],

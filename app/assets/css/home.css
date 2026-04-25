@@ -10,16 +10,117 @@
    ======================================== */
 
 /* 首页独有样式 */
+.film-frame.home-hero-frame {
+  background:
+    linear-gradient(180deg, rgba(39, 26, 22, 0.9) 0%, rgba(18, 12, 10, 0.95) 100%);
+}
+
+/* 首页主卡片背景图层：半透明嵌入，不影响文字层级 */
+.film-frame.home-hero-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(20, 15, 13, 0.78), rgba(20, 15, 13, 0.46)),
+    url("/gamelife_background.jpg") center / cover no-repeat;
+  opacity: 0.34;
+  mix-blend-mode: screen;
+}
+
+.film-frame.home-hero-frame::before {
+  z-index: 2;
+}
+
+.film-frame.home-hero-frame>* {
+  position: relative;
+  z-index: 1;
+}
+
 .home-bottom-grid {
+  position: relative;
   display: grid;
-  gap: 1.5rem;
+  gap: 1.35rem;
   grid-template-columns: 1fr;
   align-items: start;
 }
 
-@media (min-width: 1024px) {
+.home-bottom-grid::before,
+.home-bottom-grid::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.home-bottom-grid::before {
+  inset: -0.8rem 1.8rem auto 1.2rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(214, 188, 132, 0.48), transparent);
+}
+
+.home-bottom-grid::after {
+  right: 8%;
+  bottom: 12%;
+  width: min(19rem, 42vw);
+  height: min(19rem, 42vw);
+  border: 1px solid rgba(214, 188, 132, 0.12);
+  border-radius: 999px;
+  opacity: 0.68;
+}
+
+@media (min-width: 1100px) {
   .home-bottom-grid {
-    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    grid-template-columns: minmax(22rem, 0.9fr) minmax(30rem, 1.1fr);
+    column-gap: 1.4rem;
+    row-gap: 1rem;
+    padding: 0.35rem 0.6rem 0.9rem;
+  }
+
+  /* Desktop collage: keep the left stack real so cards cannot overlap. */
+  .home-left-stack {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 1.25rem;
+    align-content: start;
+  }
+
+  .home-bottom-grid .game-life-panel {
+    --collage-x: 0rem;
+    --collage-y: 0rem;
+    --collage-angle: -0.35deg;
+  }
+
+  .home-bottom-grid .tech-reel-panel {
+    --collage-x: 0.25rem;
+    --collage-y: 0.45rem;
+    --collage-angle: 0.25deg;
+  }
+
+  .home-bottom-grid .personal-card {
+    margin-top: 0;
+    --collage-x: 0.65rem;
+    --collage-y: 0rem;
+    --collage-angle: 0.2deg;
+  }
+
+  .home-bottom-grid .game-life-panel,
+  .home-bottom-grid .tech-reel-panel,
+  .home-bottom-grid .personal-card {
+    position: relative;
+    z-index: 1;
+    transform: translate(var(--collage-x), var(--collage-y)) rotate(var(--collage-angle));
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .home-bottom-grid .game-life-panel:hover,
+  .home-bottom-grid .tech-reel-panel:hover,
+  .home-bottom-grid .personal-card:hover {
+    transform: translate(var(--collage-x), calc(var(--collage-y) - 0.4rem)) rotate(0deg);
   }
 }
 

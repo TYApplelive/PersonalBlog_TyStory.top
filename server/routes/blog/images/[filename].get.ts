@@ -1,18 +1,8 @@
 import { join } from "node:path";
 import { readFile, stat } from "node:fs/promises";
-import { extname } from "node:path";
+import { getMimeType } from "#shared/utils/mime";
 
 const IMAGES_DIR = "content/blog/images";
-
-const MIME_TYPES: Record<string, string> = {
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".png": "image/png",
-  ".gif": "image/gif",
-  ".webp": "image/webp",
-  ".svg": "image/svg+xml",
-  ".ico": "image/x-icon",
-};
 
 export default defineEventHandler(async (event) => {
   const filename = event.context.params?.filename;
@@ -29,8 +19,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Image not found" });
   }
 
-  const ext = extname(filename).toLowerCase();
-  const contentType = MIME_TYPES[ext] || "application/octet-stream";
+  const contentType = getMimeType(filename);
 
   const buffer = await readFile(filePath);
 

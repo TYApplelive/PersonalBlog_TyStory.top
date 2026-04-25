@@ -4,14 +4,7 @@
  */
 useHead({ title: "Post Manager - TY's Blog" });
 
-interface AdminPostItem {
-  title?: string;
-  date?: string;
-  excerpt?: string;
-  readTime?: string;
-  tags?: string[];
-  path: string;
-}
+import type { BlogPost } from "#shared/types/site";
 
 interface RepairResult {
   scannedPosts: number;
@@ -29,11 +22,13 @@ const isRepairing = ref(false);
 const repairResult = ref<RepairResult | null>(null);
 const repairMessage = ref("");
 const showStats = ref(false);
+const deletingSlug = ref("");
+const toast = useToast();
 
 // 数据加载
-const { data: posts, pending, refresh } = await useAsyncData<AdminPostItem[]>(
+const { data: posts, pending, refresh } = await useAsyncData<BlogPost[]>(
   "admin-posts-list",
-  () => $fetch("/api/blog/posts"),
+  () => $fetch("/api/admin/posts"),
   { default: () => [] },
 );
 
@@ -58,7 +53,7 @@ const filteredPosts = computed(() => {
     result = result.filter((post) => {
       const inTitle = post.title?.toLowerCase().includes(keyword);
       const inTags = post.tags?.some((tag) => tag.toLowerCase().includes(keyword));
-      const inExcerpt = post.excerpt?.toLowerCase().includes(keyword);
+      const inExcerpt = post.description?.toLowerCase().includes(keyword);
       return Boolean(inTitle || inTags || inExcerpt);
     });
   }
@@ -101,18 +96,42 @@ async function repairImages() {
   }
 }
 
-function confirmDelete(post: AdminPostItem) {
-  if (window.confirm(`确定要删除文章「${post.title || "未命名"}」吗？\n\n请手动在 content/blog/ 目录下删除对应文件`)) {
-    notify({
-      type: "info",
-      text: `请在 content/blog/ 目录手动删除文件：${post.path}`,
-    });
+async function confirmDelete(post: BlogPost) {
+  if (!window.confirm(`确定要删除文章「${post.title || "未命名"}」吗？此操作不可恢复！`)) return;
+
+  // 优先使用 stem（如 blog/1.nuxt-guide），否则从 path 提取
+  const slug = post.stem ? post.stem.split('/').pop()?.replace(/\.md$/, '') : post.path.replace("/blog/", "");
+  if (!slug) {
+    toast.error("错误", "无法获取文章标识");
+    return;
+  }
+  deletingSlug.value = slug;
+
+  try {
+    await $fetch(`/api/admin/posts/${slug}`, { method: "DELETE" });
+    posts.value = posts.value.filter((item) => item.path !== post.path);
+    toast.success("删除成功", `文章「${post.title}」已删除`);
+    await refresh();
+  } catch (error: any) {
+    toast.error("删除失败", error?.data?.message || "未知错误");
+  } finally {
+    deletingSlug.value = "";
   }
 }
 
-function copyPath(post: AdminPostItem) {
-  navigator.clipboard.writeText(post.path);
-  notify({ type: "success", text: "路径已复制到剪贴板" });
+async function copyPath(post: BlogPost) {
+  try {
+    await navigator.clipboard.writeText(post.path);
+    toast.success("复制成功", "路径已复制到剪贴板");
+  } catch {
+    toast.info("提示", `路径: ${post.path}`);
+  }
+}
+
+function scrollToTop() {
+  if (import.meta.client) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 }
 </script>
 
@@ -148,32 +167,18 @@ function copyPath(post: AdminPostItem) {
           <!-- 搜索 -->
           <div class="search-wrapper">
             <span class="search-icon">🔍</span>
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="搜索标题、摘要或标签..."
-              class="form-input admin-search-input"
-            >
+            <input v-model="searchQuery" type="text" placeholder="搜索标题、摘要或标签..." class="form-input admin-search-input">
             <button v-if="searchQuery || selectedTag" class="btn-clear" @click="clearFilters" title="清除筛选">✕</button>
           </div>
 
           <!-- 排序切换 -->
           <div class="sort-group">
-            <button
-              :class="['btn-sort', { active: sortMode === 'date-desc' }]"
-              @click="sortMode = 'date-desc'"
-              title="按日期降序"
-            >最新</button>
-            <button
-              :class="['btn-sort', { active: sortMode === 'date-asc' }]"
-              @click="sortMode = 'date-asc'"
-              title="按日期升序"
-            >最早</button>
-            <button
-              :class="['btn-sort', { active: sortMode === 'title' }]"
-              @click="sortMode = 'title'"
-              title="按标题排序"
-            >标题</button>
+            <button :class="['btn-sort', { active: sortMode === 'date-desc' }]" @click="sortMode = 'date-desc'"
+              title="按日期降序">最新</button>
+            <button :class="['btn-sort', { active: sortMode === 'date-asc' }]" @click="sortMode = 'date-asc'"
+              title="按日期升序">最早</button>
+            <button :class="['btn-sort', { active: sortMode === 'title' }]" @click="sortMode = 'title'"
+              title="按标题排序">标题</button>
           </div>
 
           <!-- 功能按钮 -->
@@ -191,12 +196,9 @@ function copyPath(post: AdminPostItem) {
       <section v-if="allTags.length > 0" class="admin-panel tag-filter-bar">
         <span class="tag-filter-label">按标签筛选：</span>
         <div class="tag-filter-list">
-          <button
-            v-for="tag in allTags"
-            :key="tag"
+          <button v-for="tag in allTags" :key="tag"
             :class="['tag-badge', { clickable: true, active: selectedTag === tag }]"
-            @click="selectedTag = selectedTag === tag ? '' : tag"
-          >
+            @click="selectedTag = selectedTag === tag ? '' : tag">
             {{ tag }}
           </button>
         </div>
@@ -232,22 +234,15 @@ function copyPath(post: AdminPostItem) {
           <div v-if="repairResult?.updatedPosts?.length" class="repair-updated-list">
             <strong>已更新的文章：</strong>
             <div class="repair-chip-list">
-              <NuxtLink
-                v-for="path in repairResult.updatedPosts"
-                :key="path"
-                :to="path"
-                class="tag-badge link-badge"
-              >{{ path.replace("/blog/", "") }}</NuxtLink>
+              <NuxtLink v-for="path in repairResult.updatedPosts" :key="path" :to="path" class="tag-badge link-badge">{{
+                path.replace("/blog/", "") }}</NuxtLink>
             </div>
           </div>
 
           <div v-if="repairResult?.errors?.length" class="repair-error-list">
             <strong>错误详情：</strong>
-            <div
-              v-for="(item, idx) in repairResult.errors"
-              :key="`${item.postPath}-${item.imagePath}`"
-              class="repair-error-item"
-            >
+            <div v-for="(item, idx) in repairResult.errors" :key="`${item.postPath}-${item.imagePath}`"
+              class="repair-error-item">
               <code>{{ item.imagePath }}</code>
               <span>{{ item.error }}</span>
             </div>
@@ -257,12 +252,8 @@ function copyPath(post: AdminPostItem) {
 
       <!-- 文章卡片列表 -->
       <TransitionGroup name="post-list" tag="div" class="admin-posts-list">
-        <article
-          v-for="(post, index) in filteredPosts"
-          :key="post.path"
-          class="admin-post-card"
-          :style="{ animationDelay: `${Math.min(index * 40, 300)}ms` }"
-        >
+        <article v-for="(post, index) in filteredPosts" :key="post.path" class="admin-post-card"
+          :style="{ animationDelay: `${Math.min(index * 40, 300)}ms` }">
           <!-- 序号 -->
           <div class="post-index">{{ index + 1 }}</div>
 
@@ -276,16 +267,12 @@ function copyPath(post: AdminPostItem) {
             <h2 class="admin-post-title">
               <NuxtLink :to="post.path" class="post-title-link">{{ post.title || "未命名文章" }}</NuxtLink>
             </h2>
-            <p class="admin-post-excerpt">{{ post.excerpt || "暂无摘要" }}</p>
+            <p class="admin-post-excerpt">{{ post.description || "暂无摘要" }}</p>
 
             <!-- 标签 -->
             <div v-if="post.tags?.length" class="admin-post-tags">
-              <span
-                v-for="tag in post.tags"
-                :key="tag"
-                :class="['tag-badge', { clickable: true }]"
-                @click="selectedTag = tag; window.scrollTo({ top: 0, behavior: 'smooth' })"
-              >{{ tag }}</span>
+              <span v-for="tag in post.tags" :key="tag" :class="['tag-badge', { clickable: true }]"
+                @click="selectedTag = tag; scrollToTop()">{{ tag }}</span>
             </div>
           </div>
 
@@ -626,6 +613,7 @@ function copyPath(post: AdminPostItem) {
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

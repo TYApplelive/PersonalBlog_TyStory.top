@@ -13,7 +13,7 @@
 import { queryCollection } from '@nuxt/content/server'
 
 export default defineEventHandler(async (event) => {
-  const slug = getRouterParam(event, 'slug')
+  const slug = decodeURIComponent(getRouterParam(event, 'slug') ?? '')
   if (!slug) return null
 
   // 拼出目标 path，如 /blog/nuxt-guide

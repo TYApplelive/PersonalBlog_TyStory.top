@@ -1,4 +1,14 @@
 <script setup lang="ts">
+/**
+ * 标签管理页 (admin/tags.vue)
+ *
+ * 耦合关系：
+ *   - server/api/blog/posts.get.ts → 通过 $fetch 获取文章列表，提取标签
+ *
+ * 函数表：
+ *   - tags     → computed，从文章 Frontmatter 提取标签并按频率降序排列
+ *   - addTag() → 校验并记录新标签（需在文章 Frontmatter 中手动添加）
+ */
 useHead({ title: '标签管理 - TY\'s Blog' });
 
 const { data: posts } = await useAsyncData('admin-tag-posts', () => $fetch('/api/blog/posts'), { default: () => [] });

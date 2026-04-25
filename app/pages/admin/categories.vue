@@ -1,4 +1,14 @@
 <script setup lang="ts">
+/**
+ * 分类管理页 (admin/categories.vue)
+ *
+ * 耦合关系：
+ *   - server/api/blog/posts.get.ts → 通过 $fetch 获取文章列表，提取分类
+ *
+ * 函数表：
+ *   - categories    → computed，从文章标签聚合分类并按文章数降序排列
+ *   - addCategory() → 校验并记录新分类（需在文章 Frontmatter 中添加对应标签）
+ */
 useHead({ title: '分类管理 - TY\'s Blog' });
 
 const { data: posts } = await useAsyncData('admin-cat-posts', () => $fetch('/api/blog/posts'), { default: () => [] });

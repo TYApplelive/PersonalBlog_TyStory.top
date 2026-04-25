@@ -14,7 +14,7 @@
  */
 
 import { storeToRefs } from "pinia";
-import type { ContactKey } from "@stores/site";
+import type { ContactKey } from "#shared/types/site";
 
 const props = withDefaults(defineProps<{
   compact?: boolean;

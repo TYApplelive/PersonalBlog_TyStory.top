@@ -1,26 +1,40 @@
 # site-data
 
-这里存放站点静态配置，不存放运行时状态。
+站点静态配置数据的 re-export 层，保持向后兼容。
 
-## 文件职责
+## 数据定义位置
 
-- `brand.ts`：品牌信息
-- `navigation.ts`：导航项和联系方式顺序
-- `contacts.ts`：联系方式数据
-- `home.ts`：首页文案和技术卡片配置
-- `about.ts`：关于页文案和灵感数据
-- `gameLife.ts`：游戏抽屉静态配置
-- `blog.ts`：博客页面展示配置
-- `footer.ts`：页脚和技术栈配置
-- `index.ts`：统一导出
+所有数据定义已迁移至 **`app/site.config.ts`**，本目录不再存放任何数据定义。
+
+## 当前文件
+
+- `index.ts`：从 `site.config.ts` 统一 re-export，保持 `~/utils/site-data` 导入路径不变
+
+## 已迁移文件
+
+以下文件已删除，数据定义均在 `site.config.ts` 中：
+
+| 原文件 | 导出项 |
+|--------|--------|
+| `brand.ts` | `brandConfig` |
+| `navigation.ts` | `navigationItems`, `contactOrder` |
+| `contacts.ts` | `contactsData` |
+| `home.ts` | `homeConfig` |
+| `about.ts` | `aboutConfig` |
+| `gameLife.ts` | `gameLifeConfig` |
+| `blog.ts` | `blogConfig` |
+| `footer.ts` | `footerConfig`, `techStack` |
 
 ## 边界
 
-- 静态文案和配置放在这里
-- 运行时 UI 状态放在 `app/stores/site.ts`
-- 博客文章正文放在根目录 `content/blog`
+- 数据定义：`app/site.config.ts`
+- re-export 兼容层：本目录
+- 运行时 UI 状态：`app/stores/site.ts`
+- 博客文章正文：根目录 `content/blog`
 
 ## 使用方式
+
+导入路径不变：
 
 ```ts
 import { brandConfig, blogConfig } from "~/utils/site-data";

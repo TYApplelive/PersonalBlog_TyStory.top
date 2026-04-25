@@ -25,7 +25,7 @@ useSeoMeta({
 <template>
   <div class="space-y-8">
     <!-- 主内容区：个人LOGO + 海报卡片 -->
-    <section class="film-frame overflow-hidden">
+    <section class="film-frame home-hero-frame overflow-hidden">
       <div class="grid gap-8 lg:grid-cols-[1.35fr_0.85fr] lg:items-center">
         <!-- 左侧：个人LOGO卡片 -->
         <div class="space-y-6">
@@ -92,7 +92,10 @@ useSeoMeta({
 
     <!-- 底部网格：游戏人生 + 技术展示 -->
     <section class="home-bottom-grid">
-      <gameLifeDrawer />
+      <div class="home-left-stack">
+        <gameLifeDrawer />
+        <personalCallingCard />
+      </div>
       <techReelSection :show-cards="isGameDrawerOpen" />
     </section>
   </div>

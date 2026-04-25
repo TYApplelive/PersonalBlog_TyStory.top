@@ -1,45 +1,52 @@
 <script setup lang="ts">
-/**
- * 博客详情页 (blog/[slug].vue)
- *
- * 耦合关系：
- *   - stores/site.ts                    → useSiteStore 读取 blog 配置
- *   - server/api/blog/[slug].get.ts     → useFetch 调用 GET /api/blog/:slug
- *   - @nuxt/content                     → ContentRenderer 渲染 Markdown 正文
- */
-
+/** 博客详情页：按 slug 获取文章并渲染正文 */
 import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
+
+// 禁用默认布局，使用页面独立结构
+definePageMeta({ layout: false });
 
 const route = useRoute();
 const siteStore = useSiteStore();
 const { blog } = storeToRefs(siteStore);
 
+// 折叠卡片展开状态
 const introCardOpen = ref(false);
-
+// 从路由参数提取文章 slug
 const slug = computed(() => route.params.slug as string);
+// 动态 API 路径，带 URL 编码处理特殊字符
+const articleApiPath = computed(() => `/api/blog/${encodeURIComponent(slug.value)}`);
 
-// 直接请求单篇 API，拿到完整 Content 文档
-const { data: post } = await useFetch<any>(`/api/blog/${slug.value}`, {
-  key: `blog-post-${slug.value}`,
+// 按文章 slug 缓存请求，slug 变化时自动重新获取
+const { data: post, pending } = await useFetch<any>(articleApiPath, {
+  key: () => `blog-post-${slug.value}`,
+  watch: [slug],
 });
 
+// 文章不存在时抛出 404 错误，由 [...slug].vue 捕获
+watch(
+  pending,
+  (isPending) => {
+    if (!isPending && !post.value) {
+      throw createError({ statusCode: 404, statusMessage: "文章不存在" });
+    }
+  },
+  { immediate: true },
+);
+
+// 文章元数据
 const postTitle = computed(() => post.value?.title || blog.value.emptyTitle);
 const postDescription = computed(() => post.value?.description || blog.value.articleFallbackDescription);
 const postTags = computed(() => post.value?.tags || []);
-const postDate = computed(() => post.value?.date || '');
-
-console.log("post:", post.value);
-
-
 const introSummary = computed(() => postDescription.value);
 
-// 去掉正文中的 h1 标题（页面已有标题展示）
+// 处理正文：移除 Markdown 中的 h1 标题（页面已有标题展示）
 const displayBody = computed(() => {
   if (!post.value) return null;
   const clone = JSON.parse(JSON.stringify(post.value));
   const nodes = clone.body?.value;
-  if (Array.isArray(nodes) && Array.isArray(nodes[0]) && nodes[0][0] === 'h1') {
+  // 检测 AST 结构中的 h1 节点并跳过
+  if (Array.isArray(nodes) && Array.isArray(nodes[0]) && nodes[0][0] === "h1") {
     clone.body.value = nodes.slice(1);
   }
   return clone;
@@ -49,6 +56,16 @@ useSeoMeta({
   title: () => postTitle.value,
   description: () => postDescription.value,
 });
+
+// 显示滚动条（默认隐藏）
+onMounted(() => {
+  document.documentElement.classList.add("show-scrollbar");
+});
+
+onUnmounted(() => {
+  document.documentElement.classList.remove("show-scrollbar");
+});
+
 </script>
 
 <template>
@@ -88,7 +105,6 @@ useSeoMeta({
             </transition>
           </section>
 
-          <!-- 使用 ContentRenderer 渲染 Markdown 正文 -->
           <article class="article-reading-card">
             <ContentRenderer v-if="displayBody" :value="displayBody"
               class="article-reading-content prose prose-film max-w-none" />

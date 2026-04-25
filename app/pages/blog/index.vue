@@ -9,24 +9,17 @@
  */
 
 import { storeToRefs } from "pinia";
-
-// 列表 DTO 类型
-interface BlogPostItem {
-  title: string
-  date: string
-  excerpt: string
-  readTime: string
-  tags: string[]
-  path: string
-}
+import type { BlogPost } from "#shared/types/site";
 
 const siteStore = useSiteStore();
 const { blog } = storeToRefs(siteStore);
 
-// 获取文章列表
-const { data: posts } = await useFetch<BlogPostItem[]>("/api/blog/posts", {
+// 非阻塞加载文章列表
+const { data: posts, pending } = useLazyFetch<BlogPost[]>("/api/blog/posts", {
   default: () => [],
 })
+
+const articlePath = (path: string) => encodeURI(path);
 
 useSeoMeta({
   title: () => blog.value.seoTitle,
@@ -63,31 +56,44 @@ useSeoMeta({
       </section>
 
       <section class="mt-6 grid gap-4 md:gap-5">
-        <article v-for="post in posts" :key="post.path" class="paper-panel">
-          <p class="text-xs uppercase tracking-[0.3em] blog-date">{{ post.date }}</p>
-
-          <h2 class="mt-3 text-xl md:text-2xl blog-post-title">
-            <NuxtLink :to="post.path" class="blog-title-link">
-              {{ post.title }}
-            </NuxtLink>
-          </h2>
-
-          <p class="mt-3 text-sm leading-7 blog-excerpt">
-            {{ post.excerpt }}
-          </p>
-
-          <div v-if="post.tags?.length" class="mt-4 flex flex-wrap gap-2">
-            <span v-for="tag in post.tags" :key="tag" class="film-tag-small">
-              {{ tag }}
-            </span>
+        <!-- 加载骨架屏 -->
+        <div v-if="pending" class="space-y-4">
+          <div v-for="i in 3" :key="i" class="paper-panel animate-pulse">
+            <div class="h-3 w-20 rounded bg-[var(--film-gold)] opacity-20"></div>
+            <div class="mt-3 h-6 w-3/4 rounded bg-[var(--film-gold)] opacity-15"></div>
+            <div class="mt-3 h-4 w-full rounded bg-[var(--film-paper)] opacity-10"></div>
+            <div class="mt-2 h-4 w-2/3 rounded bg-[var(--film-paper)] opacity-10"></div>
           </div>
+        </div>
 
-          <div class="mt-5">
-            <NuxtLink :to="post.path" class="ticket-button ticket-button-secondary">
-              {{ blog.readLabel }}
-            </NuxtLink>
-          </div>
-        </article>
+        <!-- 文章列表 -->
+        <template v-else>
+          <article v-for="post in posts" :key="post.path" class="paper-panel">
+            <p class="text-xs uppercase tracking-[0.3em] blog-date">{{ post.date }}</p>
+
+            <h2 class="mt-3 text-xl md:text-2xl blog-post-title">
+              <NuxtLink :to="articlePath(post.path)" class="blog-title-link">
+                {{ post.title }}
+              </NuxtLink>
+            </h2>
+
+            <p class="mt-3 text-sm leading-7 blog-excerpt">
+              {{ post.description }}
+            </p>
+
+            <div v-if="post.tags?.length" class="mt-4 flex flex-wrap gap-2">
+              <span v-for="tag in post.tags" :key="tag" class="film-tag-small">
+                {{ tag }}
+              </span>
+            </div>
+
+            <div class="mt-5">
+              <NuxtLink :to="articlePath(post.path)" class="ticket-button ticket-button-secondary">
+                {{ blog.readLabel }}
+              </NuxtLink>
+            </div>
+          </article>
+        </template>
       </section>
     </div>
 

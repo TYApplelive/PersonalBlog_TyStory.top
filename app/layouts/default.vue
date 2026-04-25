@@ -17,6 +17,9 @@ import { storeToRefs } from "pinia";
 const route = useRoute();
 const siteStore = useSiteStore();
 const { nav } = storeToRefs(siteStore);
+const { loggedIn, user } = useUserSession();
+
+const isAdmin = computed(() => user.value?.role === "admin");
 
 const isActive = (to: string) => {
   if (to === "/") return route.path === "/";
@@ -32,7 +35,7 @@ const navLinkClass = (to: string) => {
   <div class="film-shell">
     <div class="page-wrap">
       <header class="sticky top-4 z-50">
-        <div class="film-frame px-5 py-4 md:px-7">
+        <div class="film-frame nav-film-frame px-5 py-4 md:px-7">
           <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <customLogo />
 
@@ -40,6 +43,11 @@ const navLinkClass = (to: string) => {
               <NuxtLink v-for="item in nav" :key="item.to" :to="item.to" :class="navLinkClass(item.to)">
                 {{ item.label }}
               </NuxtLink>
+              <NuxtLink v-if="isAdmin" to="/admin" :class="navLinkClass('/admin')">
+                管理
+              </NuxtLink>
+              <NuxtLink v-if="!loggedIn" to="/login" class="nav-link">登录</NuxtLink>
+              <userMenu v-else />
             </nav>
           </div>
         </div>

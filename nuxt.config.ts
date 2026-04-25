@@ -19,7 +19,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: false },
-  modules: ["@pinia/nuxt", "@nuxt/content", "nuxt-notify"],
+  modules: ["@pinia/nuxt", "@nuxt/content", "nuxt-notify", "nuxt-auth-utils", "nuxt-lucide-icons"],
   notify: {
     position: "bottom-right",
     duration: 4000,
@@ -39,10 +39,25 @@ export default defineNuxtConfig({
     "~/assets/css/global.css",
     "~/assets/css/admin.css",
   ],
+
+  // 路由规则：缓存策略优化加载速度
+  routeRules: {
+    // 博客列表：SWR 缓存 60s
+    "/api/blog/posts": { swr: 60 },
+    // 博客详情：SWR 缓存 120s
+    "/api/blog/**": { swr: 120 },
+    // 静态资源：长期缓存
+    "/blog/images/**": { headers: { "Cache-Control": "public, max-age=31536000, immutable" } },
+    // 管理页面：不缓存
+    "/admin/**": { headers: { "Cache-Control": "no-store" } },
+  },
+
   runtimeConfig: {
     logLevel: process.env.LOG_LEVEL || "debug",
     imgBedApiUrl: process.env.IMG_BED_API_URL || "https://ty-imgbed.pages.dev",
     imgBedToken: process.env.IMG_BED_TOKEN || "",
+    authSeedAdminUsername: process.env.AUTH_SEED_ADMIN_USERNAME || "",
+    authSeedAdminPassword: process.env.AUTH_SEED_ADMIN_PASSWORD || "",
     public: {
       imgBedConfigSalt: process.env.IMG_BED_CONFIG_SALT || "default-salt-change-me",
     },
@@ -56,6 +71,13 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
+    // 静态资源服务：content/blog/images 映射为 /blog/images
+    publicAssets: [
+      {
+        dir: "content/blog/images",
+        baseURL: "/blog/images",
+      },
+    ],
     imports: {
       dirs: ["shared/utils", "shared/types"],
     },

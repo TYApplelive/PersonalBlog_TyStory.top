@@ -1,5 +1,6 @@
 import type { ImgBedConfig } from "#shared/utils/imgbed-config";
 import { buildImgBedAuthHeaders, buildImgBedUrl, resolveImgBedSrc } from "#shared/utils/imgbed-config";
+import { getMimeType } from "#shared/utils/mime";
 
 const UPLOAD_CONFIG = {
   timeout: 15000,
@@ -11,20 +12,6 @@ export interface UploadResult {
   success: boolean;
   url?: string;
   error?: string;
-}
-
-function getMimeType(filename: string): string {
-  const ext = filename.split(".").pop()?.toLowerCase() || "jpg";
-  const mimeTypes: Record<string, string> = {
-    jpg: "image/jpeg",
-    jpeg: "image/jpeg",
-    png: "image/png",
-    gif: "image/gif",
-    webp: "image/webp",
-    svg: "image/svg+xml",
-  };
-
-  return mimeTypes[ext] || "image/jpeg";
 }
 
 function extractUploadedUrl(data: unknown, apiUrl: string): string | undefined {
