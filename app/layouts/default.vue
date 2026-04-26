@@ -58,6 +58,7 @@ const navLinkClass = (to: string) => {
       </main>
 
       <customFooter />
+      <recordFooter />
     </div>
   </div>
 </template>
