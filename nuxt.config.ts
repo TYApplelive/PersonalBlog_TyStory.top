@@ -18,8 +18,11 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
+  devServer: {
+
+  },
   devtools: { enabled: false },
-  modules: ["@pinia/nuxt", "@nuxt/content", "nuxt-notify", "nuxt-auth-utils", "nuxt-lucide-icons"],
+  modules: ["@pinia/nuxt", "@nuxt/content", "nuxt-notify", "nuxt-auth-utils", "nuxt-lucide-icons", "@nuxt/icon"],
   notify: {
     position: "bottom-right",
     duration: 4000,
@@ -53,11 +56,16 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    // host: process.env.HOST || "127.0.0.1",
+    // port: process.env.PORT || "3001",
     logLevel: process.env.LOG_LEVEL || "debug",
     imgBedApiUrl: process.env.IMG_BED_API_URL || "https://ty-imgbed.pages.dev",
     imgBedToken: process.env.IMG_BED_TOKEN || "",
     authSeedAdminUsername: process.env.AUTH_SEED_ADMIN_USERNAME || "",
     authSeedAdminPassword: process.env.AUTH_SEED_ADMIN_PASSWORD || "",
+    sqliteDbPath: process.env.SQLITE_DB_PATH || ".data/auth.sqlite",
+    imgbedConfigPath: process.env.IMGBED_CONFIG_PATH || ".data/imgbed-config.json",
+    resendApiKey: process.env.RESEND_API_KEY || "",
     public: {
       imgBedConfigSalt: process.env.IMG_BED_CONFIG_SALT || "default-salt-change-me",
     },

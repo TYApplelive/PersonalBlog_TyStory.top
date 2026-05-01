@@ -52,6 +52,15 @@ async function onSwitchAccount() {
   position: relative;
 }
 
+.user-menu::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  top: 100%;
+  height: 0.55rem;
+  z-index: 1;
+}
+
 .user-trigger {
   display: inline-flex;
   align-items: center;
@@ -93,7 +102,7 @@ async function onSwitchAccount() {
   top: calc(100% + 0.55rem);
   min-width: 13rem;
   border: 1px solid rgba(214, 188, 132, 0.26);
-  border-radius: 14px;
+  border-radius: 8px;
   background: rgba(34, 22, 18, 0.98);
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
   padding: 0.5rem;

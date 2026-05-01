@@ -15,7 +15,7 @@
 
 ## 工程结构
 
-```text
+```
 .
 ├─ app/
 │  ├─ app.vue
@@ -137,14 +137,14 @@
 
 博客文章位于：
 
-```text
+```
 content/blog/*.md
 content/blog/images/*
 ```
 
 Markdown frontmatter 示例：
 
-```md
+```
 ---
 title: Nuxt 4 入门指南
 date: 2026-04-15
@@ -217,7 +217,7 @@ tags: [Nuxt, Vue, SSR]
 
 ### 前台博客阅读流程
 
-```mermaid
+```
 flowchart TD
   A["用户访问 /blog"] --> B["app/pages/blog/index.vue"]
   B --> C["GET /api/blog/posts"]
@@ -234,7 +234,7 @@ flowchart TD
 
 ### 后台新建文章流程
 
-```mermaid
+```
 flowchart TD
   A["进入 /admin/posts/new"] --> B["拖拽或选择 Markdown 文件"]
   B --> C["浏览器读取文件内容"]
@@ -252,7 +252,7 @@ flowchart TD
 
 ### 批量修复图片流程
 
-```mermaid
+```
 flowchart TD
   A["进入 /admin/posts"] --> B["点击 修复图片"]
   B --> C["POST /api/admin/repair-blog-images"]
@@ -270,7 +270,7 @@ flowchart TD
 
 ### 图床配置流程
 
-```mermaid
+```
 flowchart TD
   A["进入 /admin/imgbed-manager"] --> B["GET /api/admin/imgbed-config"]
   B --> C["server/utils/imgbed-config.server.ts"]
@@ -290,7 +290,7 @@ flowchart TD
 
 ### 前台静态配置流
 
-```mermaid
+```
 flowchart LR
   A["app/utils/site-data/*"] --> B["app/utils/site-data/index.ts"]
   B --> C["app/stores/site.ts"]
@@ -308,32 +308,37 @@ flowchart LR
 | `IMG_BED_API_URL` | 图床服务基础地址。 | `https://ty-imgbed.pages.dev` |
 | `IMG_BED_TOKEN` | 图床上传或管理 Token。 | 空字符串 |
 | `IMG_BED_CONFIG_SALT` | 公共配置盐值。 | `default-salt-change-me` |
+| `SQLITE_DB_PATH` | SQLite 数据库文件路径（相对于项目根目录）。 | `.data/auth.sqlite` |
+| `IMGBED_CONFIG_PATH` | 图床配置文件路径（相对于项目根目录）。 | `.data/imgbed-config.json` |
+| `AUTH_SEED_ADMIN_USERNAME` | 初始管理员用户名（用户表为空时自动创建）。 | 空字符串 |
+| `AUTH_SEED_ADMIN_PASSWORD` | 初始管理员密码（用户表为空时自动创建）。 | 空字符串 |
+| `NUXT_SESSION_PASSWORD` | Nuxt Session 加密密钥。 | 无（必须设置） |
 
-后台保存的图床配置会写入 `.data/imgbed-config.json`。该目录已在 `.gitignore` 中忽略，适合保存本地运行配置。
+后台保存的图床配置会写入 `.data/imgbed-config.json`，认证数据存储在 `.data/auth.sqlite`。该目录已在 `.gitignore` 中忽略，适合保存本地运行配置。
 
 ## 开发命令
 
 安装依赖：
 
-```bash
+```
 yarn
 ```
 
 启动开发环境：
 
-```bash
+```
 yarn dev
 ```
 
 构建：
 
-```bash
+```
 yarn build
 ```
 
 预览构建结果：
 
-```bash
+```
 yarn preview
 ```
 
@@ -371,7 +376,7 @@ yarn preview
 
 ### 1.2 本地启动
 
-```bash
+```
 # 安装依赖
 yarn install
 
@@ -392,7 +397,7 @@ yarn generate
 
 在项目根目录创建 `.env` 文件：
 
-```env
+```
 # 日志等级（debug / info / warn / error）
 LOG_LEVEL=debug
 
@@ -404,6 +409,19 @@ IMG_BED_TOKEN=your-upload-token
 
 # 配置加密盐值（用于前端 localStorage 加密）
 IMG_BED_CONFIG_SALT=your-secret-salt
+
+# SQLite 数据库路径（相对于项目根目录）
+SQLITE_DB_PATH=.data/auth.sqlite
+
+# 图床配置文件路径（相对于项目根目录）
+IMGBED_CONFIG_PATH=.data/imgbed-config.json
+
+# 本地登录系统：首次启动若用户表为空，会自动创建管理员账号
+AUTH_SEED_ADMIN_USERNAME=admin
+AUTH_SEED_ADMIN_PASSWORD=your-secure-password
+
+# Nuxt Session 密码（用于会话加密）
+NUXT_SESSION_PASSWORD=generate-a-random-string-here
 ```
 
 ---
@@ -482,7 +500,7 @@ c:\NewProject\PersonalBlog\
 1. 在 `content/blog/` 创建 `your-article-slug.md`
 2. 填写 frontmatter：
 
-```markdown
+```
 ---
 title: 文章标题
 date: 2026-04-25
@@ -507,7 +525,7 @@ tags: [Tag1, Tag2]
 
 2. 使用 `defineEventHandler` 定义处理函数：
 
-```typescript
+```
 // server/api/example.get.ts
 export default defineEventHandler(async (event) => {
   // 获取查询参数
@@ -532,7 +550,7 @@ export default defineEventHandler(async (event) => {
 2. 使用 `<script setup>` 语法
 3. 通过 `useFetch` 调用 API
 
-```vue
+```
 <script setup lang="ts">
 /**
  * 页面说明
@@ -558,7 +576,7 @@ const siteStore = useSiteStore()
 
 ### 3.4 新增 Pinia Store
 
-```typescript
+```
 // app/stores/example.ts
 import { defineStore } from 'pinia'
 
@@ -596,7 +614,7 @@ export const useExampleStore = defineStore('example', {
 
 每个 API 文件必须包含：
 
-```typescript
+```
 /**
  * API 说明 (server/api/xxx.ts)
  *
@@ -612,7 +630,7 @@ export const useExampleStore = defineStore('example', {
 
 ### 4.3 错误处理
 
-```typescript
+```
 export default defineEventHandler(async (event) => {
   try {
     // 业务逻辑
@@ -651,7 +669,7 @@ export default defineEventHandler(async (event) => {
 
 **在页面/组件中使用 `useFetch`：**
 
-```typescript
+```
 // 推荐：使用 useFetch（SSR 友好）
 const { data, pending, error } = await useFetch('/api/posts')
 
@@ -666,7 +684,7 @@ const { data } = await useFetch<Post[]>('/api/posts', {
 
 **在事件处理中使用 `$fetch`：**
 
-```typescript
+```
 // 点击事件等场景
 async function handleSubmit() {
   const result = await $fetch('/api/posts', {
@@ -745,7 +763,7 @@ replaceImagePath() 替换为图床 URL
 
 **解决方案：**
 
-```bash
+```
 # 重新生成类型定义
 npx nuxi prepare
 
@@ -808,7 +826,7 @@ chore: 构建/工具相关
 
 ### 9.2 常用命令速查
 
-```bash
+```
 # 开发
 yarn dev
 

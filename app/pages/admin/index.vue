@@ -4,29 +4,43 @@
  *
  * 耦合关系：
  *   - server/api/blog/posts.get.ts → 通过 $fetch 获取文章列表
- *   - app/pages/admin/posts.vue    → 导航跳转目标
- *   - app/pages/admin/tags.vue     → 导航跳转目标
- *   - app/pages/admin/categories.vue → 导航跳转目标
+ *   - app/pages/admin/posts/index.vue  → 导航跳转目标（文章管理+新建文章）
+ *   - app/pages/admin/categories.vue   → 导航跳转目标（分类与标签管理）
  *   - app/pages/admin/imgbed-manager.vue → 导航跳转目标
  *   - app/pages/admin/settings.vue → 导航跳转目标
  *   - app/pages/admin/users.vue    → 导航跳转目标
+ *   - shared/types/site.ts         → BlogPost 类型定义
  *
  * 函数表：
  *   - allTags       → computed，从文章列表提取去重标签集合
  *   - allCategories → computed，从文章标题首字提取分类集合
  *   - navItems      → 管理后台导航项配置（含动态 badge）
  */
+
 useHead({ title: '管理中心 - TY\'s Blog' });
 
-const { data: posts } = await useAsyncData('admin-posts', () => $fetch('/api/blog/posts'), { default: () => [] });
+const { data: posts, error } = await useAsyncData<BlogPost[]>(
+  'admin-posts',
+  () => $fetch('/api/blog/posts'),
+  { default: () => [] }
+);
+
+if (import.meta.client) {
+  watchEffect(() => {
+    if (error.value) {
+      console.error('[Admin Dashboard] 文章数据加载失败:', error.value);
+    } else {
+      console.log(`[Admin Dashboard] 已加载 ${posts.value.length} 篇文章`);
+    }
+  });
+}
+
 const allTags = computed(() => [...new Set(posts.value.flatMap(p => p.tags).filter(Boolean))]);
 const allCategories = computed(() => [...new Set(posts.value.map(p => p.title?.charAt(0) ?? '其他').filter(Boolean))]);
 
 const navItems = [
-  { to: '/admin/posts', icon: '📝', label: '文章管理', desc: '查看、编辑和管理所有博客文章', badge: posts.value.length },
-  { to: '/admin/posts/new', icon: '➕', label: '新建文章', desc: '创建新的 Markdown 博客文章' },
-  { to: '/admin/categories', icon: '🏷️', label: '分类管理', desc: '管理博客文章分类信息' },
-  { to: '/admin/tags', icon: '🔖', label: '标签管理', desc: '查看和管理文章标签', badge: allTags.value.length },
+  { to: '/admin/posts', icon: '📝', label: '文章管理', desc: '查看、编辑、创建和管理所有博客文章', badge: posts.value.length },
+  { to: '/admin/categories', icon: '🏷️', label: '分类与标签', desc: '管理博客文章分类与标签', badge: allTags.value.length },
   { to: '/admin/imgbed-manager', icon: '☁️', label: '图床管理', desc: '配置 CloudFlare ImgBed API 与 Token' },
   { to: '/admin/settings', icon: '⚙️', label: '系统设置', desc: '查看和配置博客系统参数' },
   { to: '/admin/users', icon: '👤', label: '用户管理', desc: '管理博客用户和所有者信息' },
@@ -38,7 +52,7 @@ const navItems = [
     <header class="admin-header">
       <p class="eyebrow">ADMIN ROOM</p>
       <h1>管理中心</h1>
-      <p class="admin-subtitle">博客管理后台，涵盖文章、分类、标签、图床和系统配置。</p>
+      <p class="admin-subtitle">博客管理后台，涵盖文章、分类与标签、图床和系统配置。</p>
     </header>
 
     <main class="admin-main">
@@ -55,10 +69,7 @@ const navItems = [
           <div class="stat-value">{{ allCategories.length }}</div>
           <div class="stat-label">分类数</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ posts.length ? [...new Set(posts.map(p => p.date?.slice(0, 4)))].length : 0 }}</div>
-          <div class="stat-label">发布年份</div>
-        </div>
+        <YearTimeline :posts="posts" />
       </div>
 
       <div class="nav-grid">

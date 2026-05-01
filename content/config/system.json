@@ -1,0 +1,8 @@
+{
+  "logLevel": "debug",
+  "cacheStrategy": "swr",
+  "blogListCacheSeconds": 60,
+  "blogDetailCacheSeconds": 120,
+  "imgBedApiUrl": "https://ty-imgbed.pages.dev",
+  "imgBedToken": ""
+}

@@ -39,7 +39,7 @@ const navLinkClass = (to: string) => {
           <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <customLogo />
 
-            <nav class="flex flex-wrap items-center gap-2 md:justify-end">
+            <nav class="nav-track flex flex-wrap items-center gap-1 md:justify-end">
               <NuxtLink v-for="item in nav" :key="item.to" :to="item.to" :class="navLinkClass(item.to)">
                 {{ item.label }}
               </NuxtLink>

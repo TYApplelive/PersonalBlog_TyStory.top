@@ -1,6 +1,7 @@
 @import "./font.css";
 @import "./home.css";
 @import "./blog.css";
+@import "./animations.css";
 @import "./components/gameLifeDrawer.css";
 @import "./components/contactIcons.css";
 @import "./components/techReelSection.css";
@@ -131,14 +132,14 @@ svg {
 
 .film-frame {
   position: relative;
-  border: 1px solid rgba(183, 140, 77, 0.34);
-  border-radius: 30px;
+  border: 1px solid rgba(183, 140, 77, 0.28);
+  border-radius: 8px;
   background: linear-gradient(180deg,
       rgba(39, 26, 22, 0.94) 0%,
       rgba(18, 12, 10, 0.96) 100%);
   box-shadow:
-    0 25px 70px rgba(0, 0, 0, 0.32),
-    inset 0 0 0 1px rgba(255, 240, 199, 0.05);
+    0 4px 24px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 1px rgba(255, 240, 199, 0.04);
   padding: clamp(1.5rem, 3vw, 2.8rem);
   overflow: hidden;
 }
@@ -146,14 +147,38 @@ svg {
 .film-frame::before {
   content: "";
   position: absolute;
-  inset: 14px;
-  border: 1px solid rgba(214, 188, 132, 0.18);
-  border-radius: 22px;
+  left: 0;
+  top: 12%;
+  bottom: 12%;
+  width: 2px;
+  background: linear-gradient(180deg,
+      transparent,
+      rgba(183, 140, 77, 0.48) 15%,
+      rgba(183, 140, 77, 0.48) 85%,
+      transparent);
+  pointer-events: none;
+}
+
+.film-frame::after {
+  content: "";
+  position: absolute;
+  left: 1.2rem;
+  right: 1.2rem;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(183, 140, 77, 0.22),
+      transparent);
   pointer-events: none;
 }
 
 .nav-film-frame {
   overflow: visible;
+}
+
+.nav-film-frame::after {
+  content: none;
 }
 
 .film-label {
@@ -183,16 +208,44 @@ svg {
 }
 
 .paper-panel {
-  border-radius: 28px;
-  border: 1px solid rgba(92, 58, 32, 0.18);
+  position: relative;
+  border-radius: 6px;
+  border: 1px solid rgba(92, 58, 32, 0.14);
   background: linear-gradient(180deg,
       rgba(244, 230, 201, 0.98) 0%,
       rgba(230, 212, 177, 0.96) 100%);
   box-shadow:
-    0 18px 42px rgba(0, 0, 0, 0.18),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+    0 2px 16px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
   color: var(--film-ink);
   padding: clamp(1.4rem, 2.4vw, 2rem);
+}
+
+.paper-panel::before {
+  content: "";
+  position: absolute;
+  left: 0.8rem;
+  right: 0.8rem;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(183, 140, 77, 0.4) 20%,
+      rgba(183, 140, 77, 0.4) 80%,
+      transparent);
+  pointer-events: none;
+}
+
+.paper-panel::after {
+  content: "";
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-top: 1px solid rgba(183, 140, 77, 0.35);
+  border-left: 1px solid rgba(183, 140, 77, 0.35);
+  pointer-events: none;
 }
 
 /* 浅色背景下的标题强化 */
@@ -217,15 +270,15 @@ svg {
 
 .poster-card {
   position: relative;
-  border-radius: 26px;
-  border: 1px solid rgba(183, 140, 77, 0.28);
+  border-radius: 4px;
+  border: 1px solid rgba(183, 140, 77, 0.24);
   background:
-    radial-gradient(circle at top, rgba(123, 30, 30, 0.28), transparent 45%),
+    radial-gradient(circle at top, rgba(123, 30, 30, 0.28), transparent 55%),
     linear-gradient(180deg,
       rgba(39, 18, 17, 0.97) 0%,
       rgba(12, 9, 9, 0.98) 100%);
   padding: 1.6rem;
-  box-shadow: inset 0 0 0 1px rgba(255, 239, 205, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 239, 205, 0.04);
 }
 
 .poster-card::after {
@@ -301,27 +354,74 @@ svg {
   color: #7b1e1e;
 }
 
+/* ---- 导航链接 — 胶片轨道风格 ------------------------ */
 .nav-link {
-  border-radius: 999px;
-  border: 1px solid transparent;
-  padding: 0.85rem 1.5rem;
-  font-size: 1.35rem;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.9rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--film-muted-light);
-  transition: all 0.24s ease;
+  transition:
+    color 0.24s ease,
+    transform 0.24s ease;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.9rem;
+  right: 0.9rem;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--film-gold), transparent);
+  transform: scaleX(0);
+  opacity: 0;
+  transition:
+    transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 0.28s ease;
 }
 
 .nav-link:hover {
-  border-color: rgba(214, 188, 132, 0.24);
   color: var(--film-paper);
+  transform: translateY(-1px);
+}
+
+.nav-link:hover::after {
+  transform: scaleX(1);
+  opacity: 1;
 }
 
 .nav-link-active {
-  border-color: rgba(214, 188, 132, 0.3);
-  background: rgba(255, 244, 222, 0.06);
   color: var(--film-paper);
+  text-shadow: 0 0 18px rgba(214, 188, 132, 0.28);
+}
+
+.nav-link-active::after {
+  transform: scaleX(1);
+  opacity: 1;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--film-gold), var(--film-gold), transparent);
+}
+
+/* 导航容器 — 3D 透视轨道 */
+.nav-track {
+  perspective: 600px;
+}
+
+.nav-track .nav-link {
+  transform-style: preserve-3d;
+}
+
+.nav-track .nav-link:hover {
+  transform: translateY(-2px) rotateX(6deg);
+}
+
+.nav-track .nav-link-active {
+  transform: translateY(0) rotateX(0);
 }
 
 
@@ -373,10 +473,10 @@ svg {
   flex-direction: column;
   gap: 0.2rem;
   min-width: 13rem;
-  border-radius: 20px;
-  border: 1px solid rgba(214, 188, 132, 0.26);
+  border-radius: 8px;
+  border: 1px solid rgba(214, 188, 132, 0.22);
   background: rgba(40, 27, 21, 0.96);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   padding: 0.85rem 1rem;
   z-index: 3;
 }
@@ -439,8 +539,8 @@ svg {
 .game-drawer-envelope-stage {
   position: relative;
   min-height: 20rem;
-  border-radius: 24px;
-  border: 1px solid rgba(92, 58, 32, 0.16);
+  border-radius: 8px;
+  border: 1px solid rgba(92, 58, 32, 0.13);
   background: linear-gradient(180deg,
       rgba(147, 100, 72, 0.16) 0%,
       rgba(80, 50, 33, 0.08) 100%);
@@ -454,8 +554,8 @@ svg {
   content: "";
   position: absolute;
   inset: 0.85rem;
-  border: 1px dashed rgba(92, 58, 32, 0.16);
-  border-radius: 18px;
+  border: 1px dashed rgba(92, 58, 32, 0.14);
+  border-radius: 6px;
   pointer-events: none;
 }
 
@@ -488,26 +588,26 @@ svg {
   width: 100%;
   min-height: 7rem;
   text-align: left;
-  border: 1px solid rgba(92, 58, 32, 0.22);
-  border-radius: 18px;
+  border: 1px solid rgba(92, 58, 32, 0.18);
+  border-radius: 8px;
   background: linear-gradient(180deg,
       rgba(252, 245, 234, 0.94) 0%,
       rgba(236, 218, 187, 0.94) 100%);
-  box-shadow: 0 10px 22px rgba(55, 33, 18, 0.16);
+  box-shadow: 0 4px 14px rgba(55, 33, 18, 0.1);
   color: var(--film-ink);
   padding: 1rem;
   cursor: pointer;
   transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    border-color 0.25s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .game-envelope:hover,
 .game-envelope-active {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 16px 28px rgba(55, 33, 18, 0.2);
-  border-color: rgba(123, 30, 30, 0.3);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 20px rgba(55, 33, 18, 0.14);
+  border-color: rgba(123, 30, 30, 0.25);
 }
 
 .game-envelope-title {
@@ -526,8 +626,8 @@ svg {
 }
 
 .game-letter {
-  border-radius: 22px;
-  border: 1px solid rgba(92, 58, 32, 0.16);
+  border-radius: 8px;
+  border: 1px solid rgba(92, 58, 32, 0.13);
   background: rgba(255, 251, 243, 0.76);
   padding: 1.25rem;
 }
@@ -748,19 +848,14 @@ svg {
     padding-top: 0.75rem;
   }
 
-  .film-frame::before {
-    inset: 10px;
-  }
-
   .hero-title {
     letter-spacing: 0.03em;
     font-size: clamp(2rem, 8vw, 4rem);
   }
 
   .nav-link {
-    padding: 0.65rem 0.9rem;
+    padding: 0.5rem 0.65rem;
     font-size: 0.95rem;
-    font-weight: 500;
   }
 
   .contact-tooltip {
@@ -847,10 +942,3 @@ svg {
   text-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* 导航栏优化 */
-.nav-link {
-  font-size: 1.35rem;
-  font-weight: 600;
-  padding: 0.35em 0.75em;
-  letter-spacing: 0.025em;
-}

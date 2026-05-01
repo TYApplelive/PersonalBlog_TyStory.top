@@ -48,20 +48,28 @@ async function submitLogin() {
     </header>
 
     <main class="admin-main">
-      <section class="admin-panel login-panel">
-        <div class="form-group">
-          <label for="username">用户名</label>
-          <input id="username" v-model.trim="username" type="text" class="form-input" autocomplete="username">
-        </div>
+      <section class="admin-panel">
+        <form @submit.prevent="submitLogin" class="login-panel">
+          <div class="form-group">
+            <label for="username">用户名</label>
+            <input id="username" v-model.trim="username" type="text" class="form-input" autocomplete="username">
+          </div>
 
-        <div class="form-group">
-          <label for="password">密码</label>
-          <input id="password" v-model="password" type="password" class="form-input" autocomplete="current-password">
-        </div>
+          <div class="form-group">
+            <label for="password">密码</label>
+            <input id="password" v-model="password" type="password" class="form-input" autocomplete="current-password">
+          </div>
 
-        <button type="button" class="btn btn-primary" :disabled="pending" @click="submitLogin">
-          {{ pending ? "登录中..." : "登录" }}
-        </button>
+          <button type="submit" class="btn btn-primary" :disabled="pending">
+            {{ pending ? "登录中..." : "登录" }}
+          </button>
+
+          <p class="auth-links">
+            <NuxtLink to="/register">注册账号</NuxtLink>
+            <span class="sep">·</span>
+            <NuxtLink to="/forgot-password">忘记密码</NuxtLink>
+          </p>
+        </form>
       </section>
     </main>
   </div>
@@ -75,5 +83,22 @@ async function submitLogin() {
 .login-panel {
   display: grid;
   gap: 0.8rem;
+}
+
+.auth-links {
+  text-align: center;
+  margin-top: 0.3rem;
+  color: var(--film-paper-soft);
+  font-size: 0.9rem;
+}
+
+.auth-links a {
+  color: var(--film-gold);
+  text-decoration: underline;
+}
+
+.auth-links .sep {
+  margin: 0 0.5rem;
+  color: var(--film-muted);
 }
 </style>

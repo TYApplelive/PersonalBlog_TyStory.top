@@ -1,0 +1,22 @@
+{
+  "label": "End Credits",
+  "description": "这是 TY 的第二版个人站。它不是文件夹式的文章目录，而是一段还在继续写的个人片头。",
+  "contactLabel": "Contacts",
+  "ending": "Act II / Built by",
+  "contacts": {
+    "github": {
+      "label": "GitHub",
+      "value": "TYApplelive",
+      "href": "https://github.com/TYApplelive"
+    },
+    "qq": {
+      "label": "QQ",
+      "value": "2623999208"
+    },
+    "wechat": {
+      "label": "微信",
+      "value": "applelive2003"
+    }
+  },
+  "contactOrder": ["github", "qq", "wechat"]
+}

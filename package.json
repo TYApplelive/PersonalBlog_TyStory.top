@@ -10,10 +10,18 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@milkdown/core": "^7.20.0",
+    "@milkdown/plugin-clipboard": "^7.20.0",
+    "@milkdown/plugin-history": "^7.20.0",
+    "@milkdown/preset-commonmark": "^7.20.0",
+    "@milkdown/theme-nord": "^7.20.0",
+    "@milkdown/vue": "^7.20.0",
     "@nuxt/content": "^3.13.0",
+    "@nuxt/icon": "^2.2.1",
     "@pinia/nuxt": "^0.11.3",
     "@tailwindcss/vite": "^4.2.2",
     "better-sqlite3": "^12.9.0",
+    "marked": "^18.0.3",
     "nuxt": "^4.2.2",
     "nuxt-auth-utils": "0.5.29",
     "nuxt-lucide-icons": "2.1.0",

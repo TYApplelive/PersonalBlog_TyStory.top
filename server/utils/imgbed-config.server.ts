@@ -1,7 +1,9 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
-const CONFIG_FILE = join(process.cwd(), ".data", "imgbed-config.json");
+// 从运行时配置获取图床配置文件路径（支持通过 .env 配置）
+const config = useRuntimeConfig();
+const CONFIG_FILE = join(process.cwd(), config.imgbedConfigPath || ".data/imgbed-config.json");
 
 function getDefaultImgBedConfig(): ImgBedConfig {
   const runtimeConfig = useRuntimeConfig();

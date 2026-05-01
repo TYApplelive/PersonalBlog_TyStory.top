@@ -1,0 +1,7 @@
+{
+  "items": [
+    { "label": "首页", "to": "/" },
+    { "label": "关于", "to": "/about" },
+    { "label": "博客", "to": "/blog" }
+  ]
+}

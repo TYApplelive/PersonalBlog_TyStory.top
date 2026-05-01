@@ -9,6 +9,10 @@ useHead({
   htmlAttrs: { lang: "zh-CN" },
   link: [{ rel: "icon", type: "image/png", href: "/icon.png" }],
 });
+
+if (import.meta.client) {
+  useScrollReveal();
+}
 </script>
 
 <template>

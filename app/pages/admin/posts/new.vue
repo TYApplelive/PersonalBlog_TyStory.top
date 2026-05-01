@@ -1,835 +1,618 @@
 <script setup lang="ts">
 /**
- * 新建文章页面：上传 Markdown → 处理本地图片 → 保存
+ * 新建文章页 (admin/posts/new.vue)
+ *
+ * 三栏布局：左目录大纲 + 中 WYSIWYG 编辑（Milkdown）+ 右 HTML 预览
+ * 容器居中留边距，保留全屏编辑体验。
  */
-import type { ImgBedConfig } from "#shared/utils/imgbed-config";
-import { getImgBedConfig } from "#shared/utils/imgbed-config";
-import { extractImages, getLocalImages } from "#shared/utils/markdown-parser";
-import {
-  buildMarkdownWithFrontmatter,
-  formatTagsInput,
-  parseMarkdownForEditor,
-  parseTagsInput,
-  validateRequiredFrontmatter,
-  type BlogFrontmatterForm,
-} from "#shared/utils/post-frontmatter";
+import { marked } from "marked";
+import MarkdownEditor from "@components/MarkdownEditor.vue";
 
-useHead({ title: "New Post - TY's Blog" });
-
-interface ProcessResponse {
-  success: boolean;
-  processedContent: string;
-  totalImages: number;
-  localImages: number;
-  processedCount: number;
-  uploadedCount: number;
-  skippedCount: number;
-  failedCount: number;
-  errors?: Array<{ path: string; error: string }>;
-}
+useHead({ title: "新建文章 - TY's Blog" });
+definePageMeta({ layout: false });
 
 interface SaveResponse {
   success: boolean;
   path: string;
 }
 
-interface UploadedImage {
-  originalPath: string;
-  remoteUrl: string;
-  altText: string;
+interface HeadingItem {
+  text: string;
+  level: number;
+  id: string;
 }
 
+const router = useRouter();
 const toast = useToast();
 
-const selectedFile = ref<File | null>(null);
-const draftContent = ref("");
-const processedContent = ref("");
-const markdownBody = ref("");
-const customFilename = ref("");
-const frontmatterForm = ref<BlogFrontmatterForm>({
-  title: "",
-  date: "",
-  description: "",
-  readTime: "",
-  tags: [],
-});
-const tagsInput = ref("");
-const isDragging = ref(false);
+/* ---- 编辑器状态 ---- */
+const editorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null);
+const markdownContent = ref(`---
+title:
+date: ${new Date().toISOString().slice(0, 10)}
+description:
+tags: []
+---
+
+`);
 const isSaving = ref(false);
-const progress = ref(0);
-const processedImages = ref(0);
-const totalProcessImages = ref(0);
-const statusText = ref("");
-const savePath = ref("");
-const errors = ref<Array<{ path: string; error: string }>>([]);
-const currentConfig = ref<ImgBedConfig>({ apiUrl: "", token: "" });
-const uploadedImages = ref<UploadedImage[]>([]);
-const previewImage = ref<string | null>(null);
-const previewPosition = ref({ x: 0, y: 0 });
-let progressTimer: ReturnType<typeof setInterval> | null = null;
+const saveResult = ref<{ path: string } | null>(null);
+const filename = ref("");
 
-const { data: loadedConfig } = await useAsyncData("imgbed-config-post-create", () => getImgBedConfig());
+/* ---- 布局状态 ---- */
+const showToc = ref(true);
+const showPreview = ref(true);
+const headings = ref<HeadingItem[]>([]);
 
-watch(
-  loadedConfig,
-  (value) => {
-    if (value) currentConfig.value = value;
-  },
-  { immediate: true },
-);
+const canSave = computed(() => Boolean(filename.value.trim() && !isSaving.value));
 
-const rebuiltMarkdown = computed(() => {
-  if (!draftContent.value) return "";
-  return buildMarkdownWithFrontmatter(
-    { ...frontmatterForm.value, tags: parseTagsInput(tagsInput.value) },
-    markdownBody.value,
-  );
+/* ---- 预览渲染 ---- */
+const renderedHtml = computed(() => {
+  try {
+    return marked.parse(markdownContent.value, { breaks: true }) as string;
+  } catch {
+    return '<p style="color:#e07a7a">渲染错误</p>';
+  }
 });
-const extractedImages = computed(() => extractImages(rebuiltMarkdown.value));
-const localImages = computed(() => getLocalImages(extractedImages.value));
-const remoteImages = computed(() => extractedImages.value.filter((item) => item.pathType === "remote"));
-const outputContent = computed(() => processedContent.value || rebuiltMarkdown.value);
-const resolvedFilename = computed(() => {
-  if (customFilename.value.trim()) return customFilename.value.trim();
-  return selectedFile.value?.name.replace(/\.(md|markdown)$/i, "") || "";
-});
-const canSave = computed(() => Boolean(selectedFile.value && draftContent.value && resolvedFilename.value && !isSaving.value));
-const progressLabel = computed(() => `${processedImages.value}/${totalProcessImages.value}`);
 
-function resetResultState() {
-  processedContent.value = "";
-  savePath.value = "";
-  errors.value = [];
-  progress.value = 0;
-  processedImages.value = 0;
-  totalProcessImages.value = 0;
-  statusText.value = "";
-  uploadedImages.value = [];
+/* ---- 内容更新回调 ---- */
+function onEditorUpdate(markdown: string) {
+  markdownContent.value = markdown;
 }
 
-function stopProgressTimer() {
-  if (progressTimer) {
-    clearInterval(progressTimer);
-    progressTimer = null;
+/* ---- 收集目录 ---- */
+function refreshOutline() {
+  if (editorRef.value?.getOutline) {
+    headings.value = editorRef.value.getOutline();
   }
 }
 
-function startFakeProgress(total: number) {
-  stopProgressTimer();
-  if (total <= 1) return;
-
-  progressTimer = setInterval(() => {
-    if (processedImages.value < total - 1) {
-      processedImages.value += 1;
-      progress.value = Math.min(80, 10 + Math.round((processedImages.value / total) * 70));
-    }
-  }, 350);
+/** 点击目录项时滚动预览到对应标题 */
+function scrollToHeading(id: string) {
+  const el = document.querySelector(`.preview-body [id="${id}"]`);
+  el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function loadMarkdownFile(file: File) {
-  if (!/\.(md|markdown)$/i.test(file.name)) {
-    toast.error("Invalid file", "Please choose a .md or .markdown file");
-    return;
-  }
-
-  selectedFile.value = file;
-  if (!customFilename.value) {
-    customFilename.value = file.name.replace(/\.(md|markdown)$/i, "");
-  }
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    draftContent.value = String(reader.result ?? "");
-    const parsed = parseMarkdownForEditor(draftContent.value);
-    frontmatterForm.value = parsed.frontmatter;
-    tagsInput.value = formatTagsInput(parsed.frontmatter.tags);
-    markdownBody.value = parsed.body;
-    resetResultState();
-  };
-  reader.readAsText(file, "utf-8");
-}
-
-function onDragOver(event: DragEvent) {
-  event.preventDefault();
-  isDragging.value = true;
-}
-
-function onDragLeave() {
-  isDragging.value = false;
-}
-
-function onDrop(event: DragEvent) {
-  event.preventDefault();
-  isDragging.value = false;
-  const file = event.dataTransfer?.files?.[0];
-  if (file) loadMarkdownFile(file);
-}
-
-function onFileSelect(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (file) loadMarkdownFile(file);
-}
-
-function extractUploadedImages(original: string, processed: string): UploadedImage[] {
-  const originalLocal = getLocalImages(extractImages(original));
-  const processedRemote = extractImages(processed).filter((img) => img.pathType === "remote");
-
-  const uploaded: UploadedImage[] = [];
-  for (const localImg of originalLocal) {
-    const remoteImg = processedRemote.find((r) => r.altText === localImg.altText);
-    if (remoteImg && !uploaded.some((u) => u.originalPath === localImg.path)) {
-      uploaded.push({
-        originalPath: localImg.path,
-        remoteUrl: remoteImg.path,
-        altText: localImg.altText || "",
-      });
-    }
-  }
-  return uploaded;
-}
-
-function showImagePreview(url: string, event: MouseEvent) {
-  previewImage.value = url;
-  updatePreviewPosition(event);
-}
-
-function hideImagePreview() {
-  previewImage.value = null;
-}
-
-function updatePreviewPosition(event: MouseEvent) {
-  const x = event.clientX + 15;
-  const y = event.clientY + 15;
-  const maxX = window.innerWidth - 320;
-  const maxY = window.innerHeight - 220;
-  previewPosition.value = {
-    x: Math.min(x, maxX),
-    y: Math.min(y, maxY),
-  };
-}
-
-async function savePost() {
+/* ---- 保存 ---- */
+async function handleSave() {
   if (!canSave.value) return;
 
-  const requiredErrors = validateRequiredFrontmatter({
-    ...frontmatterForm.value,
-    tags: parseTagsInput(tagsInput.value),
-  });
-  if (requiredErrors.length) {
-    toast.error("Missing frontmatter", `Required: ${requiredErrors.join(", ")}`);
-    return;
-  }
-
   isSaving.value = true;
-  errors.value = [];
-  processedContent.value = "";
-  savePath.value = "";
-  uploadedImages.value = [];
-  totalProcessImages.value = localImages.value.length;
-  processedImages.value = 0;
-  progress.value = totalProcessImages.value ? 10 : 30;
-  statusText.value = totalProcessImages.value
-    ? "Processing markdown images before save..."
-    : "No local image found. Saving markdown...";
-
-  if (totalProcessImages.value) {
-    startFakeProgress(totalProcessImages.value);
-  }
-
   try {
-    let finalContent = rebuiltMarkdown.value;
+    const content = await editorRef.value?.getMarkdown() || markdownContent.value;
 
-    if (totalProcessImages.value > 0) {
-      const processResult = await $fetch<ProcessResponse>("/api/process-markdown", {
-        method: "POST",
-        body: {
-          content: rebuiltMarkdown.value,
-        },
-      });
-
-      stopProgressTimer();
-      finalContent = processResult.processedContent;
-      processedContent.value = processResult.processedContent;
-      errors.value = processResult.errors || [];
-      processedImages.value = processResult.processedCount;
-      progress.value = 85;
-      statusText.value = `Image process finished (${processResult.uploadedCount}/${processResult.localImages}). Writing markdown...`;
-
-      // 提取上传成功的图片
-      uploadedImages.value = extractUploadedImages(rebuiltMarkdown.value, processResult.processedContent);
-    } else {
-      processedContent.value = finalContent;
-      progress.value = 85;
-      statusText.value = "No local image found. Writing markdown...";
-    }
-
-    const saveResult = await $fetch<SaveResponse>("/api/admin/save-post", {
+    const result = await $fetch<SaveResponse>("/api/admin/save-post", {
       method: "POST",
       body: {
-        filename: resolvedFilename.value,
-        content: finalContent,
+        filename: filename.value.trim(),
+        content,
       },
     });
 
-    savePath.value = saveResult.path;
-    progress.value = 100;
-    statusText.value = `Saved to ${saveResult.path}`;
-    toast.success("Saved", statusText.value);
+    saveResult.value = { path: result.path };
+    toast.success("保存成功", `文章已保存至 ${result.path}`);
   } catch (error: any) {
-    stopProgressTimer();
-    statusText.value = error?.data?.message || error?.message || "Save failed";
-    toast.error("Save failed", statusText.value);
+    toast.error("保存失败", error?.data?.message || error?.message || "未知错误");
   } finally {
     isSaving.value = false;
+  }
+}
+
+function handleBack() {
+  router.push("/admin/posts");
+}
+
+/* ---- 快捷键 ---- */
+function handleKeydown(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+    e.preventDefault();
+    handleSave();
+  }
+}
+
+/* ---- 编辑器命令转发 ---- */
+function exec(method: string, ...args: any[]) {
+  if (editorRef.value && typeof (editorRef.value as any)[method] === 'function') {
+    ((editorRef.value as any)[method] as Function)(...args);
+  }
+}
+
+function insertMark(type: string) {
+  switch (type) {
+    case 'h1': exec('toggleHeading', 1); break;
+    case 'h2': exec('toggleHeading', 2); break;
+    case 'h3': exec('toggleHeading', 3); break;
+    case 'bold': exec('toggleBold'); break;
+    case 'italic': exec('toggleItalic'); break;
+    case 'strike': exec('toggleStrikethrough'); break;
+    case 'ul': exec('toggleBulletList'); break;
+    case 'ol': exec('toggleOrderedList'); break;
+    case 'task': exec('toggleTaskList'); break;
+    case 'code': exec('toggleCodeBlock'); break;
+    case 'inline-code': exec('toggleInlineCode'); break;
+    case 'quote': exec('toggleBlockquote'); break;
+    case 'hr': exec('insertHr'); break;
+    case 'link': exec('insertLink'); break;
+    case 'image': exec('insertImage'); break;
   }
 }
 </script>
 
 <template>
-  <div class="admin-page">
-    <header class="admin-header">
-      <p class="eyebrow">POST CREATOR</p>
-      <h1>新建文章</h1>
-      <p class="admin-subtitle">
-        Drop a markdown file here. Save will process local image paths first, then write the final markdown into
-        <code>content/blog/</code>.
-      </p>
+  <div class="new-post-page" @keydown="handleKeydown">
+    <!-- 顶部栏 -->
+    <header class="top-bar">
+      <nav class="breadcrumb">
+        <NuxtLink to="/admin" class="bc-link">管理中心</NuxtLink>
+        <span class="bc-sep">/</span>
+        <NuxtLink to="/admin/posts" class="bc-link">文章管理</NuxtLink>
+        <span class="bc-sep">/</span>
+        <span class="bc-current">新建文章</span>
+      </nav>
+
+      <div class="top-right">
+        <div class="file-field">
+          <span class="file-pre">content/blog/</span>
+          <input v-model="filename" type="text" class="file-input" placeholder="file-name">
+          <span class="file-suf">.md</span>
+        </div>
+        <div class="top-actions">
+          <button class="top-btn" @click="handleBack">取消</button>
+          <button class="top-btn primary" :disabled="!canSave" @click="handleSave">
+            {{ isSaving ? "保存中..." : "保存" }}
+          </button>
+        </div>
+      </div>
     </header>
 
-    <main class="admin-main post-create-main">
-      <section class="admin-panel post-create-hero">
-        <div class="post-dropzone" :class="{ 'is-dragging': isDragging, 'has-file': selectedFile }"
-          @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
-          <input type="file" accept=".md,.markdown" class="post-file-input" @change="onFileSelect">
+    <!-- 编辑器主体：三栏 -->
+    <div class="editor-body">
+      <!-- 左栏：目录大纲 -->
+      <div v-if="showToc" class="toc-col">
+        <div class="toc-hd">
+          <span class="toc-label">大纲</span>
+          <button class="toc-close" @click="showToc = false" title="收起大纲">✕</button>
+        </div>
+        <div class="toc-body">
+          <div v-if="headings.length === 0" class="toc-empty">暂无标题</div>
+          <button
+            v-for="(h, i) in headings" :key="i"
+            class="toc-item"
+            :class="'toc-level-' + h.level"
+            @click="scrollToHeading(h.id)"
+          >
+            {{ h.text || '(空标题)' }}
+          </button>
+        </div>
+      </div>
 
-          <div v-if="!selectedFile" class="post-dropzone-copy">
-            <span class="post-dropzone-icon">MD</span>
-            <strong>Drop markdown here</strong>
-            <p>Click the area if you want to select a file manually</p>
-          </div>
+      <!-- 中栏：编辑器 -->
+      <div class="editor-col" :class="{ 'editor-full': !showPreview }">
+        <!-- 格式工具栏 -->
+        <div class="fmt-bar">
+          <button v-if="!showToc" class="fmt-btn toggle-sidebar" title="展开大纲" @click="showToc = true">☰</button>
 
-          <div v-else class="post-dropzone-copy">
-            <span class="post-dropzone-icon">OK</span>
-            <strong>{{ selectedFile.name }}</strong>
-            <p>{{ (selectedFile.size / 1024).toFixed(1) }} KB</p>
-          </div>
+          <button class="fmt-btn" title="标题 1" @click="insertMark('h1')"><strong>H1</strong></button>
+          <button class="fmt-btn" title="标题 2" @click="insertMark('h2')"><strong>H2</strong></button>
+          <button class="fmt-btn" title="标题 3" @click="insertMark('h3')"><strong>H3</strong></button>
+          <span class="fmt-divider"></span>
+          <button class="fmt-btn" title="粗体" @click="insertMark('bold')"><strong>B</strong></button>
+          <button class="fmt-btn" title="斜体" @click="insertMark('italic')"><em>I</em></button>
+          <button class="fmt-btn" title="删除线" @click="insertMark('strike')"><s>S</s></button>
+          <span class="fmt-divider"></span>
+          <button class="fmt-btn" title="链接" @click="insertMark('link')">🔗</button>
+          <button class="fmt-btn" title="图片" @click="insertMark('image')">🖼</button>
+          <span class="fmt-divider"></span>
+          <button class="fmt-btn" title="无序列表" @click="insertMark('ul')">•</button>
+          <button class="fmt-btn" title="有序列表" @click="insertMark('ol')">1.</button>
+          <button class="fmt-btn" title="任务列表" @click="insertMark('task')">☑</button>
+          <span class="fmt-divider"></span>
+          <button class="fmt-btn" title="代码块" @click="insertMark('code')">&lt;/&gt;</button>
+          <button class="fmt-btn" title="行内代码" @click="insertMark('inline-code')"><code>`</code></button>
+          <button class="fmt-btn" title="引用" @click="insertMark('quote')">❝</button>
+          <button class="fmt-btn" title="分隔线" @click="insertMark('hr')">—</button>
+
+          <span style="flex:1"></span>
+          <button
+            class="fmt-btn preview-toggle"
+            :class="{ active: showPreview }"
+            :title="showPreview ? '隐藏预览' : '显示预览'"
+            @click="showPreview = !showPreview"
+          >
+            {{ showPreview ? '▸ 预览' : '◂ 预览' }}
+          </button>
         </div>
 
-        <div class="post-create-side">
-          <div class="form-group">
-            <label>Target filename</label>
-            <input v-model="customFilename" type="text" class="form-input">
-            <p class="form-hint">Letters, numbers, spaces, dash and underscore are allowed.</p>
-          </div>
-
-          <div class="post-create-config">
-            <p><strong>Frontmatter</strong></p>
-            <label class="form-group compact-form-group">
-              <span>Title *</span>
-              <input v-model="frontmatterForm.title" type="text" class="form-input">
-            </label>
-            <label class="form-group compact-form-group">
-              <span>Date *</span>
-              <input v-model="frontmatterForm.date" type="text" placeholder="YYYY-MM-DD" class="form-input">
-            </label>
-            <label class="form-group compact-form-group">
-              <span>Description *</span>
-              <textarea v-model="frontmatterForm.description" rows="3" class="form-input"></textarea>
-            </label>
-            <label class="form-group compact-form-group">
-              <span>Read Time *</span>
-              <input v-model="frontmatterForm.readTime" type="text" class="form-input">
-            </label>
-            <label class="form-group compact-form-group">
-              <span>Tags</span>
-              <input v-model="tagsInput" type="text" placeholder="Nuxt, Vue" class="form-input">
-            </label>
-          </div>
-
-          <div class="post-create-config">
-            <p><strong>ImgBed API:</strong> {{ currentConfig.apiUrl || "Not configured" }}</p>
-            <p><strong>Token:</strong> {{ currentConfig.token ? "Configured" : "Missing" }}</p>
-            <NuxtLink to="/admin/imgbed-manager" class="btn btn-secondary btn-sm">ImgBed Settings</NuxtLink>
-          </div>
-
-          <div class="post-create-actions">
-            <button class="btn btn-primary" :disabled="!canSave" @click="savePost">
-              {{ isSaving ? "Saving..." : "Save" }}
-            </button>
-          </div>
-
-          <div v-if="savePath" class="post-save-result">
-            <p><strong>Saved path:</strong> {{ savePath }}</p>
-            <NuxtLink :to="savePath" class="btn btn-ghost btn-sm">Open Article</NuxtLink>
-          </div>
-        </div>
-      </section>
-
-      <section class="post-stats-grid">
-        <article class="admin-panel post-stat-card">
-          <strong>{{ extractedImages.length }}</strong>
-          <span>Total Images</span>
-        </article>
-        <article class="admin-panel post-stat-card">
-          <strong>{{ localImages.length }}</strong>
-          <span>Local Images</span>
-        </article>
-        <article class="admin-panel post-stat-card">
-          <strong>{{ remoteImages.length }}</strong>
-          <span>Remote Images</span>
-        </article>
-        <article class="admin-panel post-stat-card">
-          <strong>{{ uploadedImages.length }}</strong>
-          <span>Uploaded</span>
-        </article>
-      </section>
-
-      <section v-if="statusText" class="admin-panel">
-        <div class="progress-row">
-          <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: `${progress}%` }" />
-          </div>
-          <span class="progress-counter">{{ progressLabel }}</span>
-        </div>
-        <p class="post-status-text">{{ statusText }}</p>
-      </section>
-
-      <section class="post-preview-grid">
-        <article class="admin-panel post-inspector">
-          <header class="post-section-head">
-            <div>
-              <p class="eyebrow">IMAGE REPORT</p>
-              <h2>Image References</h2>
-            </div>
-          </header>
-
-          <div v-if="!draftContent" class="empty-state">
-            <div class="empty-icon">IMG</div>
-            <div class="empty-text">Waiting for markdown file</div>
-          </div>
-
-          <template v-else>
-            <!-- 上传成功的图片 -->
-            <div v-if="uploadedImages.length" class="post-image-block uploaded">
-              <h3>✅ Uploaded images ({{ uploadedImages.length }})</h3>
-              <div class="post-image-list">
-                <div
-                  v-for="item in uploadedImages"
-                  :key="item.remoteUrl"
-                  class="post-image-item uploaded-item"
-                  @mouseenter="showImagePreview(item.remoteUrl, $event)"
-                  @mousemove="updatePreviewPosition"
-                  @mouseleave="hideImagePreview"
-                >
-                  <strong>{{ item.altText || "No alt" }}</strong>
-                  <code>{{ item.remoteUrl }}</code>
-                  <span class="upload-badge">Uploaded</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="post-image-block">
-              <h3>Local images to upload</h3>
-              <div v-if="localImages.length" class="post-image-list">
-                <div v-for="item in localImages" :key="item.fullMatch" class="post-image-item local">
-                  <strong>{{ item.altText || "No alt" }}</strong>
-                  <code>{{ item.path }}</code>
-                </div>
-              </div>
-              <p v-else class="post-image-empty">No local image needs processing.</p>
-            </div>
-
-            <div class="post-image-block">
-              <h3>Remote images</h3>
-              <div v-if="remoteImages.length" class="post-image-list">
-                <div
-                  v-for="item in remoteImages"
-                  :key="item.fullMatch"
-                  class="post-image-item remote"
-                  @mouseenter="showImagePreview(item.path, $event)"
-                  @mousemove="updatePreviewPosition"
-                  @mouseleave="hideImagePreview"
-                >
-                  <strong>{{ item.altText || "No alt" }}</strong>
-                  <code>{{ item.path }}</code>
-                </div>
-              </div>
-              <p v-else class="post-image-empty">No remote image found.</p>
-            </div>
-
-            <div v-if="errors.length" class="post-errors">
-              <h3>Process errors</h3>
-              <div v-for="item in errors" :key="`${item.path}-${item.error}`" class="post-error-item">
-                <code>{{ item.path }}</code>
-                <span>{{ item.error }}</span>
-              </div>
-            </div>
+        <!-- Milkdown WYSIWYG 编辑器 -->
+        <ClientOnly>
+          <MarkdownEditor
+            ref="editorRef"
+            :model-value="markdownContent"
+            @update:model-value="onEditorUpdate"
+          />
+          <template #fallback>
+            <div class="editor-loading">编辑器加载中...</div>
           </template>
-        </article>
+        </ClientOnly>
+      </div>
 
-        <article class="admin-panel post-inspector">
-          <header class="post-section-head">
-            <div>
-              <p class="eyebrow">MARKDOWN PREVIEW</p>
-              <h2>Output Preview</h2>
-            </div>
-          </header>
-
-          <div v-if="!draftContent" class="empty-state">
-            <div class="empty-icon">MD</div>
-            <div class="empty-text">No markdown loaded yet</div>
-          </div>
-
-          <pre v-else class="post-content-preview">{{ outputContent }}</pre>
-        </article>
-      </section>
-    </main>
-
-    <!-- 图片预览浮层 -->
-    <Teleport to="body">
-      <Transition name="preview-fade">
-        <div
-          v-if="previewImage"
-          class="image-preview-popup"
-          :style="{ left: `${previewPosition.x}px`, top: `${previewPosition.y}px` }"
-        >
-          <img :src="previewImage" alt="Preview" @error="hideImagePreview">
+      <!-- 右栏：预览 -->
+      <div v-if="showPreview" class="preview-col">
+        <div class="preview-hd">
+          <span class="preview-label">预览</span>
+          <button class="preview-close" @click="showPreview = false" title="关闭预览">✕</button>
         </div>
-      </Transition>
-    </Teleport>
+        <div class="preview-body" v-html="renderedHtml"></div>
+      </div>
+    </div>
+
+    <!-- 保存结果 -->
+    <Transition name="fade">
+      <div v-if="saveResult" class="save-result">
+        <p>✅ 文章已保存</p>
+        <NuxtLink :to="saveResult.path" class="btn-primary-sm">查看文章</NuxtLink>
+        <button class="btn-ghost-sm" @click="handleBack">返回列表</button>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
-code {
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
-  background: rgba(183, 140, 77, 0.15);
-  color: var(--film-gold-soft);
-  font-size: 0.9em;
-}
-
-.post-create-main {
-  gap: 1rem;
-}
-
-.post-create-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(20rem, 0.85fr);
-  gap: 1rem;
-}
-
-.post-dropzone {
-  position: relative;
-  display: grid;
-  place-items: center;
-  min-height: 18rem;
-  border: 2px dashed rgba(183, 140, 77, 0.34);
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at top, rgba(242, 221, 175, 0.14), transparent 58%),
-    rgba(242, 221, 175, 0.05);
-  transition: border-color 0.2s ease, background 0.2s ease;
-  overflow: hidden;
-}
-
-.post-dropzone.is-dragging,
-.post-dropzone.has-file {
-  border-color: rgba(183, 140, 77, 0.7);
-  background:
-    radial-gradient(circle at top, rgba(242, 221, 175, 0.24), transparent 58%),
-    rgba(242, 221, 175, 0.1);
-}
-
-.post-file-input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.post-dropzone-copy {
-  display: grid;
-  gap: 0.45rem;
-  place-items: center;
-  text-align: center;
-  padding: 1rem;
-  color: var(--film-paper);
-  pointer-events: none;
-}
-
-.post-dropzone-copy strong {
-  font-size: 1.2rem;
-  color: var(--film-gold-soft);
-}
-
-.post-dropzone-copy p {
-  margin: 0;
-  color: var(--film-paper-soft);
-}
-
-.post-dropzone-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 999px;
-  background: rgba(20, 12, 9, 0.45);
-  color: var(--film-gold-soft);
-  font-weight: 800;
-}
-
-.post-create-side {
-  display: grid;
-  gap: 1rem;
-}
-
-.post-create-config,
-.post-save-result {
-  display: grid;
-  gap: 0.45rem;
-  padding: 1rem;
-  border: 1px solid rgba(183, 140, 77, 0.18);
-  border-radius: 16px;
-  background: rgba(242, 221, 175, 0.05);
-  color: var(--film-paper-soft);
-}
-
-.post-create-config p,
-.post-save-result p {
-  margin: 0;
-}
-
-.compact-form-group {
-  margin-bottom: 0;
-}
-
-.post-create-actions {
+/* ===== 容器（居中 + 边距） ===== */
+.new-post-page {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  background: var(--film-bg);
+  color: var(--film-paper);
 }
 
-.post-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.post-stat-card {
-  display: grid;
-  gap: 0.35rem;
-  justify-items: start;
-}
-
-.post-stat-card strong {
-  color: var(--film-gold-soft);
-  font-size: 1.6rem;
-  line-height: 1;
-}
-
-.post-stat-card span {
-  color: var(--film-paper-soft);
-  font-size: 0.88rem;
-}
-
-.progress-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.progress-counter,
-.post-status-text {
-  color: var(--film-paper-soft);
-}
-
-.post-status-text {
-  margin: 0.75rem 0 0;
-}
-
-.post-preview-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 1rem;
-}
-
-.post-inspector {
-  padding: 1rem;
-}
-
-.post-section-head {
+/* ===== 顶部栏 ===== */
+.top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(183, 140, 77, 0.12);
   gap: 1rem;
-  margin-bottom: 1rem;
 }
 
-.post-section-head h2 {
-  margin: 0.35rem 0 0;
-  color: var(--film-gold-soft);
-  font-size: 1.3rem;
-}
-
-.post-image-block+.post-image-block,
-.post-errors {
-  margin-top: 1rem;
-}
-
-.post-image-block h3,
-.post-errors h3 {
-  margin: 0 0 0.7rem;
-  color: var(--film-paper);
-  font-size: 1rem;
-}
-
-.post-image-block.uploaded h3 {
-  color: #6ec98f;
-}
-
-.post-image-list {
-  display: grid;
-  gap: 0.6rem;
-}
-
-.post-image-item,
-.post-error-item {
-  display: grid;
-  gap: 0.35rem;
-  padding: 0.8rem;
-  border-radius: 12px;
-  background: rgba(20, 12, 9, 0.34);
-}
-
-.post-image-item.local {
-  border-left: 3px solid var(--film-accent-soft);
-}
-
-.post-image-item.remote {
-  border-left: 3px solid var(--film-gold);
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.post-image-item.remote:hover {
-  background: rgba(20, 12, 9, 0.5);
-}
-
-.post-image-item.uploaded-item {
-  border-left: 3px solid #6ec98f;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-}
-
-.post-image-item.uploaded-item:hover {
-  background: rgba(110, 201, 143, 0.1);
-  transform: translateX(4px);
-}
-
-.upload-badge {
-  display: inline-block;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  background: rgba(110, 201, 143, 0.2);
-  color: #6ec98f;
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
-.post-image-item strong,
-.post-error-item span {
-  color: var(--film-paper);
+.bc-link {
+  color: var(--film-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.bc-link:hover { color: var(--film-gold-soft); }
+
+.bc-sep { color: var(--film-muted); font-size: 0.65rem; }
+.bc-current { color: var(--film-gold-soft); font-weight: 600; }
+
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
 }
 
-.post-image-item code,
-.post-error-item code {
-  color: var(--film-paper-soft);
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.post-image-empty {
-  margin: 0;
-  color: var(--film-muted-light);
-}
-
-.post-errors {
-  padding: 1rem;
-  border-radius: 14px;
-  background: rgba(123, 30, 30, 0.16);
-  border: 1px solid rgba(123, 30, 30, 0.26);
-}
-
-.post-content-preview {
-  margin: 0;
-  min-height: 26rem;
-  max-height: 42rem;
-  overflow: auto;
-  padding: 1rem;
-  border-radius: 14px;
-  background: rgba(20, 12, 9, 0.4);
-  color: var(--film-paper-soft);
+.file-field {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
   font-family: Consolas, Monaco, monospace;
+  font-size: 0.8rem;
+}
+
+.file-pre, .file-suf { color: var(--film-muted); white-space: nowrap; }
+
+.file-input {
+  width: 11rem;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid rgba(183, 140, 77, 0.25);
+  border-radius: 4px;
+  background: rgba(20, 12, 9, 0.4);
+  color: var(--film-paper);
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.file-input:focus {
+  border-color: var(--film-gold);
+  box-shadow: 0 0 0 2px rgba(183, 140, 77, 0.1);
+}
+
+.top-actions { display: flex; align-items: center; gap: 0.4rem; }
+
+.top-btn {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid rgba(183, 140, 77, 0.25);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--film-muted-light);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.top-btn:hover { border-color: rgba(183, 140, 77, 0.4); color: var(--film-paper); }
+
+.top-btn.primary {
+  background: var(--film-gold);
+  border-color: var(--film-gold);
+  color: #140f0d;
+  font-weight: 600;
+}
+.top-btn.primary:hover { background: var(--film-gold-soft); border-color: var(--film-gold-soft); }
+.top-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ===== 编辑器主体 ===== */
+.editor-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  border: 1px solid rgba(183, 140, 77, 0.1);
+  border-top: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  overflow: hidden;
+}
+
+/* ===== 左栏：目录大纲 ===== */
+.toc-col {
+  width: 200px;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(183, 140, 77, 0.1);
+  background: rgba(242, 221, 175, 0.02);
+  flex-shrink: 0;
+}
+
+.toc-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(183, 140, 77, 0.08);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--film-muted);
+  flex-shrink: 0;
+}
+
+.toc-close {
+  background: none; border: none; color: var(--film-muted);
+  cursor: pointer; font-size: 0.75rem; padding: 0.15rem 0.3rem; border-radius: 3px;
+  transition: all 0.12s;
+}
+.toc-close:hover { background: rgba(183, 140, 77, 0.15); color: var(--film-paper); }
+
+.toc-body { flex: 1; overflow-y: auto; padding: 0.4rem 0; }
+
+.toc-empty {
+  padding: 1rem 0.75rem; color: var(--film-muted);
+  font-size: 0.78rem; text-align: center;
+}
+
+.toc-item {
+  display: block; width: 100%; text-align: left;
+  background: none; border: none; color: var(--film-paper-soft);
+  font-size: 0.78rem; padding: 0.3rem 0.75rem; cursor: pointer;
+  transition: all 0.12s; line-height: 1.4;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.toc-item:hover { color: var(--film-gold-soft); background: rgba(183, 140, 77, 0.08); }
+
+.toc-level-1 { padding-left: 0.75rem; font-weight: 600; color: var(--film-gold-soft); }
+.toc-level-2 { padding-left: 1.5rem; }
+.toc-level-3 { padding-left: 2.25rem; font-size: 0.72rem; }
+.toc-level-4 { padding-left: 3rem; font-size: 0.68rem; }
+.toc-level-5 { padding-left: 3.75rem; font-size: 0.65rem; }
+.toc-level-6 { padding-left: 4.5rem; font-size: 0.62rem; }
+
+/* ===== 中栏：编辑器 ===== */
+.editor-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+
+.editor-full { flex: 1; }
+
+/* 格式工具栏 */
+.fmt-bar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+  padding: 0.3rem 0.75rem;
+  background: rgba(242, 221, 175, 0.03);
+  border-bottom: 1px solid rgba(183, 140, 77, 0.1);
+  flex-wrap: wrap;
+}
+
+.fmt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.7rem;
+  height: 1.7rem;
+  padding: 0 0.3rem;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--film-paper-soft);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.fmt-btn:hover { background: rgba(183, 140, 77, 0.15); color: var(--film-paper); }
+.fmt-btn code { font-size: 0.75rem; color: var(--film-gold-soft); }
+
+.fmt-btn.active { background: rgba(183, 140, 77, 0.15); color: var(--film-gold-soft); }
+
+.fmt-btn.toggle-sidebar,
+.fmt-btn.preview-toggle {
+  font-size: 0.7rem; min-width: auto; padding: 0 0.4rem; color: var(--film-muted);
+}
+.fmt-btn.preview-toggle:hover,
+.fmt-btn.toggle-sidebar:hover { color: var(--film-gold-soft); }
+
+.fmt-divider {
+  width: 1px; height: 0.9rem; margin: 0 0.2rem;
+  background: rgba(183, 140, 77, 0.15); flex-shrink: 0;
+}
+
+/* 加载占位 */
+.editor-loading {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 300px;
+  color: var(--film-muted);
   font-size: 0.9rem;
-  line-height: 1.7;
-  white-space: pre-wrap;
-  word-break: break-word;
 }
 
-/* 图片预览浮层 */
-.image-preview-popup {
-  position: fixed;
-  z-index: 9999;
-  padding: 8px;
-  border-radius: 12px;
-  background: var(--film-dark);
-  border: 2px solid var(--film-gold);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
+/* ===== 右栏：预览 ===== */
+.preview-col {
+  width: 38%;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(242, 221, 175, 0.02);
+  border-left: 1px solid rgba(183, 140, 77, 0.1);
 }
 
-.image-preview-popup img {
-  display: block;
-  max-width: 300px;
-  max-height: 200px;
-  border-radius: 8px;
-  object-fit: contain;
+.preview-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid rgba(183, 140, 77, 0.1);
 }
 
-.preview-fade-enter-active,
-.preview-fade-leave-active {
-  transition: opacity 0.15s ease;
+.preview-label {
+  color: var(--film-gold-soft);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.65rem;
 }
 
-.preview-fade-enter-from,
-.preview-fade-leave-to {
-  opacity: 0;
+.preview-close {
+  background: none; border: none; color: var(--film-muted);
+  cursor: pointer; font-size: 0.75rem; padding: 0.15rem 0.3rem; border-radius: 3px;
+  transition: all 0.12s;
+}
+.preview-close:hover { background: rgba(183, 140, 77, 0.15); color: var(--film-paper); }
+
+.preview-body {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  overflow-y: auto;
+  line-height: 1.8;
+  color: var(--film-paper);
+  font-size: 0.9rem;
 }
 
-@media (max-width: 980px) {
+/* 预览 Markdown 渲染 */
+.preview-body :deep(h1), .preview-body :deep(h2),
+.preview-body :deep(h3), .preview-body :deep(h4) {
+  color: var(--film-gold-soft);
+  margin: 1em 0 0.4em;
+  line-height: 1.3;
+}
+.preview-body :deep(h1) { font-size: 1.5rem; border-bottom: 1px solid rgba(183, 140, 77, 0.12); padding-bottom: 0.2rem; }
+.preview-body :deep(h2) { font-size: 1.25rem; }
+.preview-body :deep(h3) { font-size: 1.05rem; }
+.preview-body :deep(p) { margin: 0.6em 0; }
+.preview-body :deep(a) { color: var(--film-gold); text-decoration: underline; }
+.preview-body :deep(blockquote) {
+  border-left: 3px solid var(--film-gold); padding-left: 0.8rem;
+  margin: 0.8em 0; color: var(--film-paper-soft); font-style: italic;
+}
+.preview-body :deep(code) {
+  background: rgba(183, 140, 77, 0.12); padding: 0.12rem 0.35rem;
+  border-radius: 3px; font-family: Consolas, Monaco, monospace;
+  font-size: 0.88em; color: var(--film-gold-soft);
+}
+.preview-body :deep(pre) {
+  border: 1px solid rgba(183, 140, 77, 0.18); border-radius: 6px;
+  padding: 0.75rem; overflow-x: auto; background: rgba(10, 7, 5, 0.4);
+}
+.preview-body :deep(pre code) { background: none; padding: 0; }
+.preview-body :deep(ul), .preview-body :deep(ol) { padding-left: 1.5rem; }
+.preview-body :deep(li) { margin: 0.25em 0; }
+.preview-body :deep(img) { max-width: 100%; border-radius: 6px; margin: 0.5rem 0; }
+.preview-body :deep(hr) { border: none; border-top: 1px solid rgba(183, 140, 77, 0.18); margin: 1.5rem 0; }
+.preview-body :deep(table) { width: 100%; border-collapse: collapse; margin: 0.8rem 0; }
+.preview-body :deep(th), .preview-body :deep(td) {
+  border: 1px solid rgba(183, 140, 77, 0.18);
+  padding: 0.35rem 0.6rem; text-align: left; font-size: 0.85rem;
+}
+.preview-body :deep(th) { background: rgba(183, 140, 77, 0.06); color: var(--film-gold-soft); }
+.preview-body :deep(input[type="checkbox"]) { margin-right: 0.3rem; }
 
-  .post-create-hero,
-  .post-preview-grid {
-    grid-template-columns: 1fr;
-  }
+/* ===== 保存结果 ===== */
+.save-result {
+  position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.7rem 1.2rem; border-radius: 8px;
+  background: rgba(10, 7, 5, 0.92); border: 1px solid rgba(110, 201, 143, 0.3); z-index: 100;
+}
+.save-result p { margin: 0; font-size: 0.92rem; color: #6ec98f; font-weight: 600; }
 
-  .post-stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.btn-primary-sm {
+  padding: 0.35rem 0.75rem; border-radius: 5px; border: none;
+  background: var(--film-gold); color: #140f0d; font-size: 0.8rem;
+  font-weight: 600; cursor: pointer; text-decoration: none; transition: opacity 0.2s;
+}
+.btn-primary-sm:hover { opacity: 0.85; }
+
+.btn-ghost-sm {
+  padding: 0.35rem 0.75rem; border-radius: 5px;
+  border: 1px solid rgba(183, 140, 77, 0.25); background: transparent;
+  color: var(--film-muted-light); font-size: 0.8rem; cursor: pointer; transition: all 0.15s;
+}
+.btn-ghost-sm:hover { border-color: rgba(183, 140, 77, 0.4); color: var(--film-paper); }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* ===== 响应式 ===== */
+@media (max-width: 1100px) {
+  .toc-col { width: 160px; min-width: 120px; }
+  .preview-col { width: 32%; min-width: 200px; }
+}
+
+@media (max-width: 860px) {
+  .new-post-page { padding: 0 0.75rem; }
+  .toc-col { display: none; }
+  .preview-col { display: none; }
 }
 
 @media (max-width: 640px) {
-  .post-create-actions {
-    flex-direction: column;
-  }
-
-  .post-stats-grid {
-    grid-template-columns: 1fr;
-  }
+  .top-bar { flex-direction: column; align-items: stretch; gap: 0.4rem; padding: 0.35rem 0; }
+  .top-right { justify-content: space-between; }
+  .file-input { width: 8rem; }
 }
 </style>

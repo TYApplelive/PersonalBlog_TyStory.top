@@ -1,0 +1,163 @@
+/* ========================================
+   动画样式 — 电影感氛围动效 & 滚动入场
+   ======================================== */
+
+/* ---- 背景光影缓慢位移 ---------------------------------- */
+@keyframes cinematic-light-shift {
+  0%,
+  100% {
+    background-position: 50% 0%;
+  }
+  25% {
+    background-position: 55% 5%;
+  }
+  50% {
+    background-position: 48% 10%;
+  }
+  75% {
+    background-position: 52% 3%;
+  }
+}
+
+/* ---- 电影漏光效果 -------------------------------------- */
+@keyframes light-leak {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateX(-100%) scaleY(1);
+  }
+  15% {
+    opacity: 0.28;
+  }
+  35% {
+    opacity: 0.12;
+    transform: translateX(40%) scaleY(1.6);
+  }
+  60% {
+    opacity: 0;
+    transform: translateX(120%) scaleY(0.8);
+  }
+}
+
+/* ---- 胶片颗粒漂移 -------------------------------------- */
+@keyframes grain-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-1px, 0.5px);
+  }
+  50% {
+    transform: translate(0.5px, -1px);
+  }
+  75% {
+    transform: translate(-0.5px, -0.5px);
+  }
+}
+
+/* ---- 入场: 从下方淡入上升 ------------------------------ */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- 入场: 纯淡入 -------------------------------------- */
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---- 金光线扫过 ---------------------------------------- */
+@keyframes gold-sweep {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* ---- 应用动画的 CSS 类 --------------------------------- */
+
+body {
+  background-size: 120% 120%;
+  animation: cinematic-light-shift 20s ease-in-out infinite;
+}
+
+/* 滚动入场工具类 — 配合 useScrollReveal composable */
+[data-reveal] {
+  --reveal-index: 0;
+  --reveal-duration: 0.55s;
+}
+
+/* 隐藏状态: data-reveal 的直接子元素 + data-reveal-stagger 的子元素 */
+[data-reveal] > :where(:not(.hero-light-leak)),
+[data-reveal-stagger] > * {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--reveal-duration) cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform var(--reveal-duration) cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: calc(var(--reveal-index) * 0.08s);
+}
+
+/* 揭示状态 */
+[data-reveal].is-revealed > :where(:not(.hero-light-leak)),
+[data-reveal].is-revealed [data-reveal-stagger] > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 支持嵌套子元素 stagger（直系子元素按 DOM 顺序自动编号） */
+[data-reveal-stagger] > *:nth-child(1) { --reveal-index: 0; }
+[data-reveal-stagger] > *:nth-child(2) { --reveal-index: 1; }
+[data-reveal-stagger] > *:nth-child(3) { --reveal-index: 2; }
+[data-reveal-stagger] > *:nth-child(4) { --reveal-index: 3; }
+[data-reveal-stagger] > *:nth-child(5) { --reveal-index: 4; }
+[data-reveal-stagger] > *:nth-child(6) { --reveal-index: 5; }
+[data-reveal-stagger] > *:nth-child(7) { --reveal-index: 6; }
+[data-reveal-stagger] > *:nth-child(8) { --reveal-index: 7; }
+
+/* Hero 漏光效果 */
+.hero-light-leak {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hero-light-leak::after {
+  content: "";
+  position: absolute;
+  top: -10%;
+  left: -100%;
+  width: 50%;
+  height: 140%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 220, 140, 0.18) 38%,
+    rgba(255, 240, 200, 0.08) 50%,
+    transparent 62%
+  );
+  transform: skewX(-12deg);
+  animation: light-leak 8s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+/* 电影颗粒覆盖层漂移动画 */
+.film-grain-overlay {
+  animation: grain-drift 0.8s steps(3) infinite;
+}
