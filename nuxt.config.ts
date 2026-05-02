@@ -27,16 +27,6 @@ export default defineNuxtConfig({
     position: "bottom-right",
     duration: 4000,
   },
-
-  // 按功能模块组织的自定义路径别名
-  alias: {
-    "@components": fileURLToPath(new URL("./app/components", import.meta.url)),
-    "@stores": fileURLToPath(new URL("./app/stores", import.meta.url)),
-    "@utils": fileURLToPath(new URL("./app/utils", import.meta.url)),
-    "@layouts": fileURLToPath(new URL("./app/layouts", import.meta.url)),
-    "@serverUtils": fileURLToPath(new URL("./server/utils", import.meta.url)),
-  },
-
   css: [
     "~/assets/css/main.css",
     "~/assets/css/global.css",
@@ -73,6 +63,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  // Content 模块配置：启用原生 SQLite 支持（实验性功能）
   content: {
     experimental: {
       nativeSqlite: true,
@@ -86,8 +77,16 @@ export default defineNuxtConfig({
         baseURL: "/blog/images",
       },
     ],
+    // 自动导入：支持共享目录下的工具函数和类型定义
     imports: {
       dirs: ["shared/utils", "shared/types"],
     },
   },
+  alias: {// 按功能模块组织的自定义路径别名
+    "@components": fileURLToPath(new URL("./app/components", import.meta.url)),
+    "@stores": fileURLToPath(new URL("./app/stores", import.meta.url)),
+    "@utils": fileURLToPath(new URL("./app/utils", import.meta.url)),
+    "@layouts": fileURLToPath(new URL("./app/layouts", import.meta.url)),
+    "@serverUtils": fileURLToPath(new URL("./server/utils", import.meta.url)),
+  }
 });

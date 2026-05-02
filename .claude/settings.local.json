@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:nuxt.com)",
+      "Bash(ls \"C:\\\\\\\\Code\\\\\\\\Project\\\\\\\\PersonalBlog_TyStory.top\\\\\\\\node_modules\\\\\\\\@milkdown\\\\\\\\preset-commonmark\\\\\\\\\")",
+      "Bash(ls \"C:\\\\\\\\Code\\\\\\\\Project\\\\\\\\PersonalBlog_TyStory.top\\\\\\\\node_modules\\\\\\\\@milkdown\\\\\\\\preset-commonmark\\\\\\\\lib\")",
+      "Bash(npx nuxi *)",
+      "Bash(yarn add *)",
+      "Bash(yarn typecheck *)",
+      "Bash(sort -t: -k1,1 -k2,2n)",
+      "Bash(npx tsc *)",
+      "Bash(curl -s http://localhost:3000/api/admin/posts)",
+      "Bash(curl -s -D - http://localhost:3000/api/admin/posts)",
+      "Bash(curl -s -v -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin123\"}')",
+      "Bash(curl -s -c /tmp/auth.txt -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin123\"}')",
+      "Bash(curl -s -b /tmp/auth.txt http://localhost:3000/api/admin/posts)",
+      "Bash(sqlite3 .data/content/contents.sqlite \".tables\")",
+      "Bash(sqlite3 .data/content/contents.sqlite \"SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '_content%';\")",
+      "Bash(python3 -c ' *)",
+      "Bash(python -c ' *)",
+      "Bash(python3 *)",
+      "Bash(npx -y kill-port 3000)",
+      "Bash(curl -s -c /tmp/auth2.txt -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"t212122112\"}')",
+      "Bash(curl -s -b /tmp/auth2.txt http://localhost:3000/api/admin/posts)",
+      "Bash(curl -s -b /tmp/auth2.txt -o /dev/null -w \"HTTP %{http_code}\" http://localhost:3000/admin/posts)",
+      "Bash(curl -s -b /tmp/auth2.txt -w \"\\\\nHTTP_CODE: %{http_code}\" http://localhost:3000/api/admin/posts)",
+      "Bash(curl -s -b /tmp/auth2.txt -w \"\\\\nHTTP_CODE: %{http_code}\" http://localhost:3000/admin/posts)",
+      "Bash(curl -s -w \"\\\\nHTTP_CODE: %{http_code}\" http://localhost:3000/admin/posts)"
+    ]
+  }
+}

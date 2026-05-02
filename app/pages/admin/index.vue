@@ -21,7 +21,7 @@ useHead({ title: '管理中心 - TY\'s Blog' });
 
 const { data: posts, error } = await useAsyncData<BlogPost[]>(
   'admin-posts',
-  () => $fetch('/api/blog/posts'),
+  () => $fetch<BlogPost[]>('/api/blog/posts'),
   { default: () => [] }
 );
 

@@ -11,7 +11,17 @@
  */
 useHead({ title: '分类与标签管理 - TY\'s Blog' });
 
-const { data: posts } = await useAsyncData('admin-cat-posts', () => $fetch('/api/blog/posts'), { default: () => [] });
+interface BlogPost {
+  title: string;
+  date: string;
+  description: string;
+  readTime: string;
+  tags: string[];
+  path: string;
+  stem: string;
+}
+
+const { data: posts } = await useAsyncData('admin-cat-posts', () => $fetch<BlogPost[]>('/api/blog/posts'), { default: () => [] });
 
 const categories = computed(() => {
   const map = new Map<string, { name: string; count: number; posts: string[] }>();

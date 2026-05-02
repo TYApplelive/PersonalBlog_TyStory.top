@@ -2,23 +2,6 @@
    动画样式 — 电影感氛围动效 & 滚动入场
    ======================================== */
 
-/* ---- 背景光影缓慢位移 ---------------------------------- */
-@keyframes cinematic-light-shift {
-  0%,
-  100% {
-    background-position: 50% 0%;
-  }
-  25% {
-    background-position: 55% 5%;
-  }
-  50% {
-    background-position: 48% 10%;
-  }
-  75% {
-    background-position: 52% 3%;
-  }
-}
-
 /* ---- 电影漏光效果 -------------------------------------- */
 @keyframes light-leak {
   0%,
@@ -90,10 +73,7 @@
 
 /* ---- 应用动画的 CSS 类 --------------------------------- */
 
-body {
-  background-size: 120% 120%;
-  animation: cinematic-light-shift 20s ease-in-out infinite;
-}
+/* body 背景动画已移除以提升性能 */
 
 /* 滚动入场工具类 — 配合 useScrollReveal composable */
 [data-reveal] {
@@ -153,11 +133,13 @@ body {
     transparent 62%
   );
   transform: skewX(-12deg);
+  will-change: transform, opacity;
   animation: light-leak 8s ease-in-out infinite;
   animation-delay: 2s;
 }
 
 /* 电影颗粒覆盖层漂移动画 */
 .film-grain-overlay {
+  will-change: transform;
   animation: grain-drift 0.8s steps(3) infinite;
 }

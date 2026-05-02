@@ -14,7 +14,7 @@ function goHome() {
 }
 
 function goBack() {
-  if (import.meta.client) {
+  if (import.meta.client && window.history.length > 1) {
     window.history.back()
   } else {
     navigateTo('/')

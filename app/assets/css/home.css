@@ -28,6 +28,7 @@
     url("/gamelife_background.jpg") center / cover no-repeat;
   opacity: 0.34;
   mix-blend-mode: screen;
+  will-change: transform, opacity;
   animation: hero-bg-breathe 12s ease-in-out infinite;
 }
 
@@ -82,6 +83,7 @@
   border: 1px solid rgba(214, 188, 132, 0.1);
   border-radius: 999px;
   opacity: 0.55;
+  will-change: opacity;
   animation: decor-circle-pulse 8s ease-in-out infinite;
 }
 

@@ -16,6 +16,7 @@ export function useScrollReveal(options?: {
   threshold?: number;
 }) {
   if (initialized) return;
+  initialized = true;
 
   const rootMargin = options?.rootMargin ?? "0px 0px -40px 0px";
   const threshold = options?.threshold ?? 0.08;
@@ -29,30 +30,39 @@ export function useScrollReveal(options?: {
     }
   };
 
-  observer = new IntersectionObserver(handleIntersect, {
-    rootMargin,
-    threshold,
+  // 延迟到 hydration 完成后再创建 observer，避免 SSR hydration class mismatch
+  onMounted(() => {
+    nextTick(() => {
+      observer = new IntersectionObserver(handleIntersect, {
+        rootMargin,
+        threshold,
+      });
+
+      const observe = () => {
+        const elements = document.querySelectorAll(SELECTOR);
+        for (const el of elements) {
+          observer!.observe(el);
+        }
+      };
+
+      // 初始观察已有元素
+      observe();
+
+      // 监听 DOM 变化（Nuxt 页面切换可能导致重新渲染）
+      // 只监听 main 区域，避免 document.body + subtree 的巨大开销
+      const mainEl = document.querySelector('main');
+      if (mainEl) {
+        let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+        const mutationObserver = new MutationObserver(() => {
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(observe, 100);
+        });
+
+        mutationObserver.observe(mainEl, {
+          childList: true,
+          subtree: true,
+        });
+      }
+    });
   });
-
-  const observe = () => {
-    const elements = document.querySelectorAll(SELECTOR);
-    for (const el of elements) {
-      observer!.observe(el);
-    }
-  };
-
-  // 初始观察已有元素
-  observe();
-
-  // 监听 DOM 变化（Nuxt 页面切换可能导致重新渲染）
-  const mutationObserver = new MutationObserver(() => {
-    observe();
-  });
-
-  mutationObserver.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
-
-  initialized = true;
 }

@@ -390,6 +390,6 @@ export async function registerUser(
   }
 
   // 用邮箱作为 username，displayName 默认为邮箱 @ 前面部分
-  const display = displayName?.trim() || normalizedEmail.split("@")[0];
+  const display = (displayName?.trim() || normalizedEmail.split("@")[0]) ?? '';
   return await createUser(normalizedEmail, display, password, "user", normalizedEmail);
 }

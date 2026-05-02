@@ -90,6 +90,7 @@ body::before {
     radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.28), transparent 18%),
     radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.12), transparent 22%);
   mix-blend-mode: screen;
+  will-change: transform;
 }
 
 a {
@@ -940,5 +941,71 @@ svg {
 .film-label {
   font-weight: 800;
   text-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ---- nuxt-notify 胶片风格覆写 ---- */
+.nuxt-notify-toast {
+  background: linear-gradient(180deg,
+      rgba(39, 26, 22, 0.97) 0%,
+      rgba(18, 12, 10, 0.98) 100%) !important;
+  border: 1px solid rgba(183, 140, 77, 0.32) !important;
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(255, 240, 199, 0.04) !important;
+  border-radius: 8px !important;
+  backdrop-filter: blur(8px);
+}
+
+/* 左侧金色装饰条 */
+.nuxt-notify-toast::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 2px;
+  background: linear-gradient(180deg,
+      transparent,
+      var(--film-gold) 20%,
+      var(--film-gold) 80%,
+      transparent);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+/* 标题 */
+.nuxt-notify-toast .text-gray-900 {
+  color: var(--film-paper) !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* 描述 */
+.nuxt-notify-toast .text-gray-500 {
+  color: var(--film-muted-light) !important;
+}
+
+/* 图标颜色覆写 */
+.nuxt-notify-toast .text-green-500 { color: #6ec98f !important; }
+.nuxt-notify-toast .text-red-500 { color: #e07a7a !important; }
+.nuxt-notify-toast .text-blue-400,
+.nuxt-notify-toast .text-blue-500 { color: #7ab8e0 !important; }
+.nuxt-notify-toast .text-yellow-500 { color: var(--film-gold-soft) !important; }
+
+/* 进度条 */
+.nuxt-notify-toast .bg-green-500 { background: #6ec98f !important; }
+.nuxt-notify-toast .bg-red-500 { background: #e07a7a !important; }
+.nuxt-notify-toast .bg-blue-400,
+.nuxt-notify-toast .bg-blue-500 { background: #7ab8e0 !important; }
+.nuxt-notify-toast .bg-yellow-500 { background: var(--film-gold) !important; }
+
+/* 关闭按钮 */
+.nuxt-notify-toast button[aria-label="Close"] {
+  color: var(--film-muted-light) !important;
+}
+
+.nuxt-notify-toast button[aria-label="Close"]:hover {
+  color: var(--film-paper) !important;
+  background: rgba(183, 140, 77, 0.15) !important;
 }
 

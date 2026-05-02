@@ -36,7 +36,7 @@ const saving = ref(false);
 /** 根据 tab 索引获取配置类型 */
 function getConfigType(idx: number): string {
   const map = ['site', 'navigation', 'footer', 'blog', 'imgbed', 'system'];
-  return map[idx];
+  return map[idx] ?? '';
 }
 
 /** 获取当前 tab 的配置数据 ref */
@@ -243,7 +243,7 @@ function removeCta(index: number) {
           <div class="editable-list">
             <div v-for="(badge, i) in siteConfig.home.badges" :key="i" class="editable-row">
               <input v-model="siteConfig.home.badges[i]" type="text" class="form-input">
-              <button class="btn btn-danger btn-sm" @click="removeBadge(i)">删除</button>
+              <button class="btn btn-danger btn-sm" @click="removeBadge(i as number)">删除</button>
             </div>
             <button class="btn btn-secondary btn-sm" @click="addBadge">+ 添加标签</button>
           </div>
@@ -258,7 +258,7 @@ function removeCta(index: number) {
                 <option value="primary">Primary</option>
                 <option value="secondary">Secondary</option>
               </select>
-              <button class="btn btn-danger btn-sm" @click="removeCta(i)">删除</button>
+              <button class="btn btn-danger btn-sm" @click="removeCta(i as number)">删除</button>
             </div>
             <button class="btn btn-secondary btn-sm" @click="addCta">+ 添加 CTA</button>
           </div>
@@ -355,7 +355,7 @@ function removeCta(index: number) {
             <div v-for="(item, i) in navConfig.items" :key="i" class="editable-row">
               <input v-model="navConfig.items[i].label" type="text" placeholder="显示名称" class="form-input">
               <input v-model="navConfig.items[i].to" type="text" placeholder="路径 (如 /blog)" class="form-input">
-              <button class="btn btn-danger btn-sm" @click="removeNavItem(i)">删除</button>
+              <button class="btn btn-danger btn-sm" @click="removeNavItem(i as number)">删除</button>
             </div>
             <button class="btn btn-secondary btn-sm" @click="addNavItem">+ 添加导航项</button>
           </div>

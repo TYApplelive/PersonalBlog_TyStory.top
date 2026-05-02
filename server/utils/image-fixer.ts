@@ -167,6 +167,7 @@ export async function fixSinglePost(
 
   for (let i = 0; i < localImages.length; i++) {
     const img = localImages[i];
+    if (!img) continue;
     log.info(`处理第 ${i + 1}/${localImages.length}: "${img.path}"`);
 
     try {

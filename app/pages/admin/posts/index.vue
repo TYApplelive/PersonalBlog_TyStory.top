@@ -4,6 +4,12 @@
  */
 useHead({ title: "Post Manager - TY's Blog" });
 
+const { loggedIn, fetch: fetchSession } = useUserSession();
+await fetchSession();
+if (!loggedIn.value) {
+  await navigateTo(`/login?redirect=${encodeURIComponent('/admin/posts')}`);
+}
+
 import type { BlogPost } from "#shared/types/site";
 import type { ImgBedConfig } from "#shared/utils/imgbed-config";
 import { getImgBedConfig } from "#shared/utils/imgbed-config";
@@ -97,7 +103,7 @@ const editorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null);
 // 数据加载
 const { data: posts, pending, error, refresh } = await useAsyncData<BlogPost[]>(
   "admin-posts-list",
-  () => $fetch("/api/admin/posts"),
+  () => $fetch<BlogPost[]>("/api/admin/posts"),
   { default: () => [] },
 );
 
@@ -106,6 +112,10 @@ if (import.meta.client) {
   watchEffect(() => {
     if (error.value) {
       console.error('[Admin Posts] 文章列表加载失败:', error.value);
+      // 401 → session 过期，重定向到登录页
+      if (error.value.statusCode === 401) {
+        navigateTo(`/login?redirect=${encodeURIComponent('/admin/posts')}`);
+      }
     } else if (!pending.value) {
       console.log(`[Admin Posts] 文章列表已加载，共 ${posts.value.length} 篇`);
     }

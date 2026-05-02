@@ -810,42 +810,841 @@ chore: 构建/工具相关
 
 ---
 
-## 九、附录
+# 数据结构与函数耦合详解
 
-### 9.1 路径别名速查
+## 九、核心数据结构
 
-| 别名 | 路径 | 用途 |
-|------|------|------|
-| `@components` | `app/components/` | UI 组件 |
-| `@stores` | `app/stores/` | 状态管理 |
-| `@utils` | `app/utils/` | 工具函数 |
-| `@layouts` | `app/layouts/` | 布局组件 |
-| `@serverUtils` | `server/utils/` | 服务端工具 |
-| `~` | `app/` | 应用根目录 |
-| `#imports` | Nuxt 自动导入 | Nuxt API |
+### 9.1 博客文章数据结构
 
-### 9.2 常用命令速查
+**Markdown Frontmatter 结构:**
+
+```typescript
+interface BlogFrontmatter {
+  title: string           // 文章标题(必填)
+  date: string | Date     // 发布日期(必填),格式:YYYY-MM-DD
+  description?: string    // 文章摘要
+  excerpt?: string        // 文章摘录(可选,优先级高于 description)
+  readTime?: string       // 预计阅读时间,如 "6 min"
+  tags?: string[]         // 文章标签数组
+  category?: string       // 文章分类(可选)
+  cover?: string          // 封面图片URL(可选)
+  draft?: boolean         // 是否为草稿(可选)
+}
+```
+
+**Nuxt Content 生成的文档对象:**
+
+```typescript
+interface BlogDocument {
+  _path: string           // 文章路径,如 "/blog/nuxt-guide"
+  _draft: boolean         // 是否草稿
+  _partial: boolean       // 是否部分内容
+  _locale: string         // 语言环境
+  _type: string           // 文档类型:"markdown"
+  _id: string             // 文档唯一ID
+  _source: string         // 数据源名称
+  _file: string           // 源文件路径
+  _extension: string      // 文件扩展名
+  
+  // Frontmatter 字段
+  title: string
+  date: Date
+  description?: string
+  readTime?: string
+  tags?: string[]
+  
+  // 正文内容
+  body: {
+    type: string          // 根节点类型:"root"
+    children: Array<any>  // AST 节点树
+  }
+  
+  // 元数据
+  createdAt: Date
+  updatedAt: Date
+}
+```
+
+**API 返回的文章列表项:**
+
+```typescript
+interface BlogPostListItem {
+  _path: string           // 文章路径
+  title: string           // 标题
+  date: Date              // 发布日期
+  description?: string    // 摘要
+  readTime?: string       // 阅读时间
+  tags?: string[]         // 标签
+}
+```
+
+### 9.2 站点配置数据结构
+
+**品牌配置 (`app/utils/site-data/brand.ts`):**
+
+```typescript
+interface BrandConfig {
+  siteName: string        // 站点名称
+  ownerName: string       // 所有者姓名
+  alias?: string          // 别名/昵称
+  eyebrow?: string        // 眉标文字
+}
+```
+
+**导航配置 (`app/utils/site-data/navigation.ts`):**
+
+```typescript
+interface NavItem {
+  label: string           // 显示文本
+  path: string            // 路由路径
+  icon?: string           // 图标名称(可选)
+  external?: boolean      // 是否外部链接
+}
+
+interface NavigationConfig {
+  mainNav: NavItem[]      // 主导航菜单
+  adminNav?: NavItem[]    // 后台导航(开发环境)
+  contactOrder: string[]  // 联系方式显示顺序
+}
+```
+
+**联系方式配置 (`app/utils/site-data/contacts.ts`):**
+
+```typescript
+interface ContactInfo {
+  github?: string         // GitHub 用户名或URL
+  qq?: string             // QQ号
+  wechat?: string         // 微信号
+  email?: string          // 邮箱地址
+  twitter?: string        // Twitter/X 账号
+}
+```
+
+**GameLife 数据结构 (`app/utils/site-data/gameLife.ts`):**
+
+```typescript
+interface GameCard {
+  id: string              // 游戏唯一ID
+  name: string            // 游戏名称
+  genre: string           // 游戏类型
+  platform: string        // 游戏平台
+  playTime: string        // 游玩时长
+  rating: number          // 评分(0-10)
+  coverImage?: string     // 封面图片
+  description: string     // 游戏描述
+  status: 'playing' | 'completed' | 'paused' | 'planned'
+}
+
+interface GameLifeConfig {
+  title: string           // 抽屉标题
+  subtitle: string        // 副标题
+  games: GameCard[]       // 游戏列表
+  scatterPositions: Array<{ x: number, y: number }>  // 卡片散列位置
+}
+```
+
+### 9.3 图床配置数据结构
+
+**图床配置对象:**
+
+```typescript
+interface ImgBedConfig {
+  apiUrl: string          // 图床API基础URL
+  token: string           // 上传Token
+  uploadEndpoint?: string // 上传接口端点(可选,默认为 /upload)
+  timeout?: number        // 超时时间(毫秒,默认30000)
+  maxRetries?: number     // 最大重试次数(默认3)
+}
+```
+
+**配置文件存储位置:**
+
+- 服务端: `.data/imgbed-config.json`
+- 客户端: `localStorage` (加密存储)
+
+### 9.4 Pinia Store 状态结构
+
+**Site Store (`app/stores/site.ts`):**
+
+```typescript
+interface SiteState {
+  // 静态配置(从 site-data 加载)
+  brand: BrandConfig
+  navigation: NavigationConfig
+  contacts: ContactInfo
+  home: HomeConfig
+  about: AboutConfig
+  gameLife: GameLifeConfig
+  footer: FooterConfig
+  
+  // 运行时状态
+  isContactHovered: Record<string, boolean>  // 联系方式hover状态
+  isGameLifeOpen: boolean                     // GameLife抽屉展开状态
+  currentGameId: string | null                // 当前选中游戏ID
+  gameCardPositions: Record<string, { x: number, y: number }>  // 游戏卡片位置
+  
+  // 计算属性
+  currentGame: ComputedRef<GameCard | null>
+  visibleContacts: ComputedRef<Array<{ key: string, value: string }>>
+}
+```
+
+### 9.5 用户认证数据结构
+
+**用户对象:**
+
+```typescript
+interface User {
+  id: number              // 用户ID
+  username: string        // 用户名
+  email?: string          // 邮箱
+  role: 'admin' | 'user'  // 用户角色
+  createdAt: Date         // 创建时间
+  updatedAt: Date         // 更新时间
+}
+```
+
+**会话对象:**
+
+```typescript
+interface Session {
+  user: User              // 当前用户
+  loggedInAt: Date        // 登录时间
+  expiresAt: Date         // 过期时间
+}
+```
+
+**数据库存储:**
+
+- 位置: `.data/auth.sqlite`
+- 表结构:
+  - `users`: id, username, password_hash, email, role, created_at, updated_at
+  - `sessions`: id, user_id, token, expires_at, created_at
+
+---
+
+## 十、关键函数耦合关系
+
+### 10.1 博客文章读取链路
+
+**调用链:**
 
 ```
+前端页面 (app/pages/blog/index.vue)
+  ↓ useFetch('/api/blog/posts')
+  
+API 处理器 (server/api/blog/posts.get.ts)
+  ↓ queryCollection('blog')
+  
+Nuxt Content (@nuxt/content)
+  ↓ 读取 SQLite 缓存
+  
+内容源 (content/blog/*.md)
+  ↓ 解析 Markdown + Frontmatter
+  
+返回文章列表数组
+```
+
+**关键函数:**
+
+1. **`queryCollection('blog')`** - Nuxt Content API
+   - 输入: collection 名称
+   - 输出: Promise<BlogDocument[]>
+   - 依赖: `content.config.ts` 中的 collection 定义
+
+2. **`server/api/blog/posts.get.ts`**
+   ```typescript
+   export default defineEventHandler(async () => {
+     const posts = await queryCollection('blog')
+       .order('date', 'DESC')
+       .select('_path', 'title', 'date', 'description', 'readTime', 'tags')
+       .all()
+     
+     return posts
+   })
+   ```
+   - 耦合: 依赖 `@nuxt/content` 的 queryCollection
+   - 被调用: `app/pages/blog/index.vue`
+
+3. **`app/pages/blog/index.vue`**
+   ```typescript
+   const { data: posts } = await useFetch('/api/blog/posts')
+   ```
+   - 耦合: 调用 `/api/blog/posts`
+   - 消费: 渲染文章列表卡片
+
+### 10.2 文章保存链路
+
+**调用链:**
+
+```
+前端页面 (app/pages/admin/posts/new.vue)
+  ↓ 读取 Markdown 文件内容
+  ↓ extractImages(content)
+  
+shared/utils/markdown-parser.ts
+  ↓ 提取所有图片路径
+  
+  ↓ 筛选本地图片 getLocalImages(images)
+  
+  ↓ POST /api/process-markdown
+  
+server/api/process-markdown.post.ts
+  ↓ getImgBedConfig()
+  
+server/utils/imgbed-config.server.ts
+  ↓ 读取图床配置
+  
+  ↓ processMarkdownImages(markdown, config)
+  
+server/utils/markdown-image-processor.ts
+  ↓ 遍历本地图片
+  ↓ uploadToImgBed(imagePath, config)
+  
+server/utils/image-upload.ts
+  ↓ FormData 上传
+  ↓ fetch(apiUrl, options)
+  
+  ↓ replaceImagePath(markdown, oldPath, newUrl)
+  
+shared/utils/markdown-parser.ts
+  ↓ 正则替换图片路径
+  
+  ↓ POST /api/admin/save-post
+  
+server/api/admin/save-post.post.ts
+  ↓ validateFilename(filename)
+  
+server/utils/filename-validator.ts
+  ↓ 正则校验文件名
+  
+  ↓ writeFile(filePath, content)
+  
+Node.js fs 模块
+  ↓ 写入 content/blog/{filename}.md
+```
+
+**关键函数详解:**
+
+1. **`extractImages(markdown: string): string[]`** (`shared/utils/markdown-parser.ts`)
+   ```typescript
+   export function extractImages(markdown: string): string[] {
+     const regex = /!\[.*?\]\((.*?)\)/g
+     const matches: string[] = []
+     let match
+     
+     while ((match = regex.exec(markdown)) !== null) {
+       matches.push(match[1])
+     }
+     
+     return matches
+   }
+   ```
+   - 输入: Markdown 字符串
+   - 输出: 图片路径数组
+   - 耦合: 被 `process-markdown.post.ts` 调用
+
+2. **`getLocalImages(images: string[]): string[]`** (`shared/utils/markdown-parser.ts`)
+   ```typescript
+   export function getLocalImages(images: string[]): string[] {
+     return images.filter(path => {
+       return !path.startsWith('http://') && 
+              !path.startsWith('https://') &&
+              !path.startsWith('/')
+     })
+   }
+   ```
+   - 输入: 所有图片路径
+   - 输出: 本地图片路径(相对路径)
+   - 耦合: 过滤出需要上传的图片
+
+3. **`uploadToImgBed(imagePath: string, config: ImgBedConfig): Promise<string>`** (`server/utils/image-upload.ts`)
+   ```typescript
+   export async function uploadToImgBed(
+     imagePath: string, 
+     config: ImgBedConfig
+   ): Promise<string> {
+     const fileBuffer = await readFile(imagePath)
+     const formData = new FormData()
+     formData.append('file', fileBuffer)
+     
+     const response = await fetch(`${config.apiUrl}/upload`, {
+       method: 'POST',
+       headers: {
+         'Authorization': `Bearer ${config.token}`
+       },
+       body: formData
+     })
+     
+     const data = await response.json()
+     return data.url
+   }
+   ```
+   - 输入: 本地图片路径、图床配置
+   - 输出: 图床URL
+   - 耦合: 依赖 `imgbed-config.server.ts` 提供的配置
+   - 依赖: Node.js `fs/promises` 读取文件
+
+4. **`replaceImagePath(markdown: string, oldPath: string, newUrl: string): string`** (`shared/utils/markdown-parser.ts`)
+   ```typescript
+   export function replaceImagePath(
+     markdown: string, 
+     oldPath: string, 
+     newUrl: string
+   ): string {
+     const escapedPath = oldPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+     const regex = new RegExp(`!\\[(.*?)\\]\\(${escapedPath}\\)`, 'g')
+     return markdown.replace(regex, `![$1](${newUrl})`)
+   }
+   ```
+   - 输入: Markdown内容、旧路径、新URL
+   - 输出: 替换后的Markdown
+   - 耦合: 被 `markdown-image-processor.ts` 循环调用
+
+5. **`validateFilename(filename: string): boolean`** (`server/utils/filename-validator.ts`)
+   ```typescript
+   export function validateFilename(filename: string): boolean {
+     const validPattern = /^[a-zA-Z0-9_-]+$/
+     return validPattern.test(filename) && !filename.includes('..')
+   }
+   ```
+   - 输入: 文件名(不含扩展名)
+   - 输出: 是否合法
+   - 耦合: 防止路径穿越攻击
+
+6. **`server/api/admin/save-post.post.ts`**
+   ```typescript
+   export default defineEventHandler(async (event) => {
+     const { filename, content } = await readBody(event)
+     
+     if (!validateFilename(filename)) {
+       throw createError({
+         statusCode: 400,
+         message: 'Invalid filename'
+       })
+     }
+     
+     const filePath = resolve('content/blog', `${filename}.md`)
+     await writeFile(filePath, content, 'utf-8')
+     
+     return { success: true, path: `/blog/${filename}` }
+   })
+   ```
+   - 输入: `{ filename: string, content: string }`
+   - 输出: `{ success: boolean, path: string }`
+   - 耦合: 依赖 `filename-validator.ts`
+   - 被调用: `app/pages/admin/posts/new.vue`
+
+### 10.3 图床配置管理链路
+
+**调用链:**
+
+```
+前端页面 (app/pages/admin/imgbed-manager.vue)
+  ↓ GET /api/admin/imgbed-config
+  
+server/api/admin/imgbed-config.get.ts
+  ↓ getImgBedConfig()
+  
+server/utils/imgbed-config.server.ts
+  ↓ 读取 .data/imgbed-config.json
+  ↓ 或返回 runtimeConfig 默认值
+  
+  ↓ 返回配置对象
+  
+  ↓ 用户修改配置
+  
+  ↓ POST /api/admin/imgbed-config
+  
+server/api/admin/imgbed-config.post.ts
+  ↓ saveImgBedConfig(config)
+  
+server/utils/imgbed-config.server.ts
+  ↓ writeFile('.data/imgbed-config.json', JSON.stringify(config))
+  
+  ↓ 返回成功状态
+```
+
+**关键函数:**
+
+1. **`getImgBedConfig(): Promise<ImgBedConfig>`** (`server/utils/imgbed-config.server.ts`)
+   ```typescript
+   export async function getImgBedConfig(): Promise<ImgBedConfig> {
+     const configPath = resolve('.data', 'imgbed-config.json')
+     
+     try {
+       const content = await readFile(configPath, 'utf-8')
+       return JSON.parse(content)
+     } catch {
+       // 返回默认配置
+       return {
+         apiUrl: useRuntimeConfig().imgBedApiUrl,
+         token: useRuntimeConfig().imgBedToken
+       }
+     }
+   }
+   ```
+   - 输入: 无
+   - 输出: 图床配置对象
+   - 耦合: 依赖 `runtimeConfig` 作为降级方案
+   - 被调用: 多个API处理器
+
+2. **`saveImgBedConfig(config: ImgBedConfig): Promise<void>`** (`server/utils/imgbed-config.server.ts`)
+   ```typescript
+   export async function saveImgBedConfig(config: ImgBedConfig): Promise<void> {
+     const configPath = resolve('.data', 'imgbed-config.json')
+     await mkdir(dirname(configPath), { recursive: true })
+     await writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8')
+   }
+   ```
+   - 输入: 图床配置对象
+   - 输出: void
+   - 耦合: 写入 `.data/imgbed-config.json`
+   - 被调用: `imgbed-config.post.ts`
+
+### 10.4 Pinia Store 数据流
+
+**初始化流程:**
+
+```
+app/stores/site.ts
+  ↓ import { brand, navigation, contacts, ... } from '@utils/site-data'
+  
+app/utils/site-data/index.ts
+  ↓ export * from './brand'
+  ↓ export * from './navigation'
+  ↓ ...
+  
+各个 site-data 模块
+  ↓ 导出静态配置对象
+  
+Site Store
+  ↓ state 中保存静态配置
+  ↓ state 中保存运行时状态
+  
+组件消费
+  ↓ const siteStore = useSiteStore()
+  ↓ siteStore.brand.siteName
+  ↓ siteStore.isGameLifeOpen
+```
+
+**状态更新示例:**
+
+```typescript
+// app/stores/site.ts
+export const useSiteStore = defineStore('site', {
+  state: () => ({
+    isGameLifeOpen: false,
+    currentGameId: null,
+    // ...其他状态
+  }),
+  
+  actions: {
+    toggleGameLife() {
+      this.isGameLifeOpen = !this.isGameLifeOpen
+    },
+    
+    setCurrentGame(gameId: string) {
+      this.currentGameId = gameId
+    }
+  }
+})
+
+// app/components/gameLifeDrawer.vue
+const siteStore = useSiteStore()
+
+function handleGameClick(gameId: string) {
+  siteStore.setCurrentGame(gameId)  // 更新状态
+}
+```
+
+### 10.5 批量图片修复链路
+
+**调用链:**
+
+```
+前端页面 (app/pages/admin/posts/index.vue)
+  ↓ 点击"修复图片"按钮
+  ↓ POST /api/admin/repair-blog-images
+  
+server/api/admin/repair-blog-images.post.ts
+  ↓ getImgBedConfig()
+  
+server/utils/imgbed-config.server.ts
+  ↓ 获取图床配置
+  
+  ↓ repairAllBlogImages(config)
+  
+server/utils/blog-image-repair.ts
+  ↓ readdir('content/blog')
+  
+  ↓ 遍历所有 .md 文件
+  ↓ readFile(filePath)
+  
+  ↓ extractImages(content)
+  
+shared/utils/markdown-parser.ts
+  ↓ 提取图片
+  
+  ↓ filter(img => !img.startsWith(config.apiUrl))
+  
+  ↓ 筛选需要修复的图片
+  
+  ↓ 对每个图片:
+    ↓ locateImageFile(img)
+    ↓ uploadToImgBed(imagePath, config)
+    ↓ replaceImagePath(content, img, newUrl)
+  
+  ↓ writeFile(filePath, newContent)
+  
+  ↓ 返回修复统计
+```
+
+**关键函数:**
+
+1. **`repairAllBlogImages(config: ImgBedConfig)`** (`server/utils/blog-image-repair.ts`)
+   ```typescript
+   export async function repairAllBlogImages(config: ImgBedConfig) {
+     const blogDir = resolve('content/blog')
+     const files = await readdir(blogDir)
+     const mdFiles = files.filter(f => f.endsWith('.md'))
+     
+     const results = {
+       total: mdFiles.length,
+       repaired: 0,
+       errors: []
+     }
+     
+     for (const file of mdFiles) {
+       try {
+         const filePath = join(blogDir, file)
+         const content = await readFile(filePath, 'utf-8')
+         
+         const images = extractImages(content)
+         const localImages = getLocalImages(images)
+         
+         let newContent = content
+         for (const img of localImages) {
+           if (!img.startsWith(config.apiUrl)) {
+             const imagePath = locateImageFile(img, filePath)
+             const newUrl = await uploadToImgBed(imagePath, config)
+             newContent = replaceImagePath(newContent, img, newUrl)
+           }
+         }
+         
+         if (newContent !== content) {
+           await writeFile(filePath, newContent, 'utf-8')
+           results.repaired++
+         }
+       } catch (error) {
+         results.errors.push({ file, error: error.message })
+       }
+     }
+     
+     return results
+   }
+   ```
+   - 输入: 图床配置
+   - 输出: 修复统计结果
+   - 耦合: 依赖多个共享工具函数
+   - 被调用: `repair-blog-images.post.ts`
+
+---
+
+## 十一、数据流转总结
+
+### 11.1 静态配置数据流
+
+```
+app/utils/site-data/*.ts (定义)
+  ↓
+app/utils/site-data/index.ts (聚合导出)
+  ↓
+app/stores/site.ts (注入到 Pinia state)
+  ↓
+app/layouts/default.vue (导航渲染)
+app/pages/index.vue (首页内容)
+app/components/*.vue (各组件消费)
+```
+
+### 11.2 博客内容数据流
+
+```
+content/blog/*.md (Markdown 源文件)
+  ↓ @nuxt/content 解析
+  ↓ 生成 SQLite 缓存
+  
+server/api/blog/*.ts (API 查询)
+  ↓ queryCollection('blog')
+  
+app/pages/blog/*.vue (前端页面)
+  ↓ useFetch('/api/blog/*')
+  
+ContentRenderer (渲染 Markdown AST)
+```
+
+### 11.3 用户交互状态流
+
+```
+用户操作 (点击、拖拽等)
+  ↓
+app/components/*.vue (组件事件处理)
+  ↓
+app/stores/site.ts (更新 Pinia state)
+  ↓
+响应式更新
+  ↓
+UI 重新渲染
+```
+
+### 11.4 文件操作流程
+
+```
+前端表单/拖拽
+  ↓
+FileReader API (浏览器读取文件)
+  ↓
+$fetch (发送 API 请求)
+  ↓
+server/api/admin/*.ts (接收请求)
+  ↓
+server/utils/*.ts (业务逻辑处理)
+  ↓
+Node.js fs 模块 (文件系统操作)
+  ↓
+content/blog/*.md (写入磁盘)
+  ↓
+@nuxt/content 监听变化
+  ↓
+SQLite 缓存更新
+```
+
+---
+
+## 十二、开发最佳实践
+
+### 12.1 添加新功能的标准流程
+
+1. **确定数据流向**
+   - 是否需要新的静态配置? → 在 `app/utils/site-data/` 创建
+   - 是否需要运行时状态? → 在 `app/stores/site.ts` 添加
+   - 是否需要服务端存储? → 考虑 SQLite 或 JSON 文件
+
+2. **实现服务端逻辑**
+   - 创建 API: `server/api/xxx.method.ts`
+   - 编写工具函数: `server/utils/xxx.ts` 或 `shared/utils/xxx.ts`
+   - 添加类型定义: `shared/types/xxx.d.ts`
+
+3. **实现前端页面**
+   - 创建页面: `app/pages/xxx.vue`
+   - 创建组件: `app/components/xxx.vue`
+   - 调用 API: `useFetch` 或 `$fetch`
+
+4. **连接数据流**
+   - 在 Store 中添加状态(如需要)
+   - 在组件中消费 Store
+   - 确保响应式更新正常
+
+### 12.2 调试技巧
+
+**查看 Nuxt Content 数据:**
+
+```typescript
+// 在任何页面中
+const { data } = await useAsyncData('debug', () => 
+  queryCollection('blog').all()
+)
+console.log(data.value)
+```
+
+**查看 Pinia 状态:**
+
+```typescript
+// 浏览器控制台
+window.__NUXT__.pinia.state.value.site
+```
+
+**查看服务端日志:**
+
+```typescript
+// server/utils/logger.ts
+logger.info('调试信息', { data: someObject })
+```
+
+**网络请求监控:**
+
+- 打开浏览器 DevTools → Network 标签
+- 筛选 XHR/Fetch 请求
+- 查看请求体和响应
+
+### 12.3 性能优化建议
+
+1. **懒加载大型组件**
+   ```typescript
+   const HeavyComponent = defineAsyncComponent(() => 
+     import('@/components/HeavyComponent.vue')
+   )
+   ```
+
+2. **API 缓存策略**
+   ```typescript
+   const { data } = await useFetch('/api/posts', {
+     getCachedData(key) {
+       return useNuxtApp().payload.data[key]
+     }
+   })
+   ```
+
+3. **图片优化**
+   - 使用图床 CDN
+   - 添加 `loading="lazy"` 属性
+   - 提供 WebP 格式
+
+4. **减少不必要的重渲染**
+   - 使用 `computed` 缓存计算结果
+   - 避免在模板中调用函数
+   - 合理使用 `v-memo`
+
+---
+
+## 十三、附录
+
+### 13.1 常用命令速查
+
+```bash
 # 开发
 yarn dev
 
 # 构建
 yarn build
 
-# 预览
-yarn preview
-
 # 类型检查
-npx nuxi prepare
+npx vue-tsc --noEmit
 
-# 清除缓存
+# 清理缓存
 rm -rf .nuxt .output node_modules/.cache
+
+# 重新生成类型
+npx nuxi prepare
 ```
 
-### 9.3 相关文档链接
+### 13.2 重要路径别名
 
-- [Nuxt 4 文档](https://nuxt.com/docs)
-- [Nuxt Content 文档](https://content.nuxt.com)
-- [Pinia 文档](https://pinia.vuejs.org)
-- [Tailwind CSS 文档](https://tailwindcss.com)
+```json
+{
+  "@/*": "app/*",
+  "@components/*": "app/components/*",
+  "@stores/*": "app/stores/*",
+  "@utils/*": "app/utils/*",
+  "@layouts/*": "app/layouts/*",
+  "@serverUtils/*": "server/utils/*"
+}
+```
+
+### 13.3 参考资源
+
+- [Nuxt 4 官方文档](https://nuxt.com/docs)
+- [Vue 3 官方文档](https://vuejs.org/)
+- [Pinia 官方文档](https://pinia.vuejs.org/)
+- [@nuxt/content 文档](https://content.nuxt.com/)
+- [Tailwind CSS 文档](https://tailwindcss.com/)

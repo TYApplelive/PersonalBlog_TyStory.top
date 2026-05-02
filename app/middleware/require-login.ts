@@ -3,9 +3,8 @@
  */
 export default defineNuxtRouteMiddleware(async (to) => {
   const { loggedIn, fetch } = useUserSession();
-  if (!loggedIn.value) {
-    await fetch();
-  }
+  // 每次导航都向服务器校验 session
+  await fetch();
 
   if (!loggedIn.value) {
     return navigateTo(`/login?redirect=${encodeURIComponent(to.fullPath)}`);

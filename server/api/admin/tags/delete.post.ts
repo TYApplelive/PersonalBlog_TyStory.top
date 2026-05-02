@@ -19,7 +19,7 @@ async function getBlogFiles(): Promise<string[]> {
   const files: string[] = [];
   try {
     const entries = await glob("**/*.md", { cwd: blogDir });
-    for (const entry of entries) {
+    for await (const entry of entries) {
       files.push(join(blogDir, entry));
     }
   } catch {
